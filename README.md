@@ -14,22 +14,29 @@ Este projeto usa uma rede neural do tipo **MLP (Multi-Layer Perceptron)** para p
 
 ## 📂 Estrutura do Projeto
 
-```
-crypto_mlp/
-├── data/                         # Coloque aqui seu arquivo CSV
-├── models/
-│   └── model.py                 # Arquitetura da MLP
-├── trainer/
-│   └── trainer.py               # Treinamento e validação
-├── utils/
-│   ├── data_loader.py           # Carregamento e pré-processamento
-│   └── logger.py                # Configuração de logging
-├── teste/
-│   └── test_model.py            # Testes automatizados
-├── main.py                      # Script principal com argparse
+```.
+├── data
+│   └── Poloniex_BTCUSDC_d.csv
+├── pytest.ini
+├── README.md
 ├── requirements.txt
-├── .coveragerc
-└── README.md
+├── setup.py
+├── src
+│   ├── __init__.py
+│   ├── main.py
+│   ├── models
+│   │   ├── __init__.py
+│   │   └── model.py
+│   ├── trainer
+│   │   ├── __init__.py
+│   │   └── trainer.py
+│   └── utils
+│       ├── data_loader.py
+│       ├── __init__.py
+│       └── logger.py
+└── test
+    ├── __init__.py
+    └── test_model.py
 ```
 
 ---
@@ -37,7 +44,7 @@ crypto_mlp/
 ## 📊 Exemplo de Execução
 
 ```bash
-python main.py --crypto data/coinbase_BTCUSD_1h.csv --model mlp --kfolds 5
+python src/main.py --crypto data/Poloniex_BTCUSDC_d.csv --model mlp --kfolds 5
 ```
 
 Parâmetros:
