@@ -2,10 +2,9 @@ import pytest
 import numpy as np
 import tempfile
 import os
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch 
 from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import joblib
 import sys
 
