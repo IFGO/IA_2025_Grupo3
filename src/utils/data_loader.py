@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def load_data(file_path: str, window_size: int = 10) -> Tuple[np.ndarray, np.ndarray, MinMaxScaler]:
+def load_data(file_path: str, window_size: int = 7) -> Tuple[np.ndarray, np.ndarray, MinMaxScaler]:
     """
     Load and preprocess crypto price data.
 
