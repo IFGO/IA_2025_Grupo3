@@ -1,28 +1,27 @@
+from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import KFold
-from typing import Tuple
 import numpy as np
 import logging
 
 logger = logging.getLogger(__name__)
 
-def train_model(X: np.ndarray, y: np.ndarray, model_class=MLPRegressor, kfolds: int = 5, **model_kwargs) -> Tuple[object, dict]:
+def train_model(X: np.ndarray, y: np.ndarray, model_class=MLPRegressor, kfolds: int = 5, **model_kwargs):
     """
-    Treina um modelo MLPRegressor usando validação cruzada k-fold.
+    Treina um modelo MLPRegressor usando TimeSeriesSplit para validação cronológica.
     
     Args:
-        X (np.ndarray): Features de entrada
-        y (np.ndarray): Valores target
+        X (np.ndarray): Features de entrada (ordenadas cronologicamente)
+        y (np.ndarray): Valores target (ordenados cronologicamente)
         model_class (class): Classe do modelo (MLPRegressor)
-        kfolds (int): Número de folds para validação cruzada
+        kfolds (int): Número de splits para validação temporal
         **model_kwargs: Argumentos adicionais para o modelo
     
     Returns:
         tuple: (modelo treinado, métricas)
     """
-    logger.info(f"Iniciando treinamento com {kfolds} folds")
+    logger.info(f"Iniciando treinamento com {kfolds} splits temporais")
     
     # Configurações padrão para MLPRegressor
     default_params = {
@@ -30,22 +29,12 @@ def train_model(X: np.ndarray, y: np.ndarray, model_class=MLPRegressor, kfolds: 
         'activation': 'relu',
         'solver': 'adam',
         'alpha': 0.0001,
-        'batch_size': 'auto',
-        'learning_rate': 'constant', #todo add a entrance option for model type {‘constant’, ‘invscaling’, ‘adaptive’}
         'learning_rate_init': 0.001,
         'max_iter': 1000,
-        'shuffle': True,
         'random_state': 42,
-        'tol': 1e-4,
-        'verbose': True,
-        'warm_start': False,
-        'momentum': 0.9,
-        'nesterovs_momentum': True,
-        'early_stopping': False,
+        'early_stopping': True,
         'validation_fraction': 0.1,
-        'beta_1': 0.9,
-        'beta_2': 0.999,
-        'epsilon': 1e-8
+        'n_iter_no_change': 10
     }
     
     # Atualizar com parâmetros fornecidos
@@ -56,18 +45,17 @@ def train_model(X: np.ndarray, y: np.ndarray, model_class=MLPRegressor, kfolds: 
     mae_scores = []
     r2_scores = []
     
-    # Configurar validação cruzada
-    kf = KFold(n_splits=kfolds, shuffle=True, random_state=42)
-    
-    # Modelo final que será treinado em todos os dados
-    final_model = None
+    # Configurar TimeSeriesSplit
+    tscv = TimeSeriesSplit(n_splits=kfolds)
     
     logger.info(f"Formato dos dados: X={X.shape}, y={y.shape}")
     
-    for fold, (train_idx, val_idx) in enumerate(kf.split(X)):
-        logger.info(f"Processando fold {fold + 1}/{kfolds}")
+    for fold, (train_idx, val_idx) in enumerate(tscv.split(X)):
+        logger.info(f"Processando split temporal {fold + 1}/{kfolds}")
+        logger.info(f"  Treino: índices {train_idx[0]} a {train_idx[-1]} ({len(train_idx)} amostras)")
+        logger.info(f"  Validação: índices {val_idx[0]} a {val_idx[-1]} ({len(val_idx)} amostras)")
         
-        # Dividir dados
+        # Dividir dados respeitando a ordem temporal
         X_train, X_val = X[train_idx], X[val_idx]
         y_train, y_val = y[train_idx], y[val_idx]
         
@@ -94,16 +82,15 @@ def train_model(X: np.ndarray, y: np.ndarray, model_class=MLPRegressor, kfolds: 
             mae_scores.append(mae)
             r2_scores.append(r2)
             
-            logger.info(f"Fold {fold + 1} - MSE: {mse:.6f}, MAE: {mae:.6f}, R²: {r2:.6f}")
+            logger.info(f"Split {fold + 1} - MSE: {mse:.6f}, MAE: {mae:.6f}, R²: {r2:.6f}")
             
         except Exception as e:
-            logger.error(f"Erro no fold {fold + 1}: {str(e)}")
-            # Adicionar valores NaN para manter consistência
+            logger.error(f"Erro no split {fold + 1}: {str(e)}")
             mse_scores.append(np.nan)
             mae_scores.append(np.nan)
             r2_scores.append(np.nan)
     
-    # Calcular métricas médias (ignorando NaN)
+    # Calcular métricas médias
     avg_mse = np.nanmean(mse_scores)
     avg_mae = np.nanmean(mae_scores)
     avg_r2 = np.nanmean(r2_scores)
@@ -118,15 +105,11 @@ def train_model(X: np.ndarray, y: np.ndarray, model_class=MLPRegressor, kfolds: 
     # Treinar modelo final com todos os dados
     logger.info("Treinando modelo final com todos os dados")
     
-    # Normalizar todos os dados
     final_scaler = StandardScaler()
     X_scaled = final_scaler.fit_transform(X)
     
-    # Treinar modelo final
     final_model = model_class(**default_params)
     final_model.fit(X_scaled, y)
-    
-    # Adicionar scaler ao modelo para uso futuro
     final_model.scaler = final_scaler
     
     # Compilar métricas
@@ -145,6 +128,78 @@ def train_model(X: np.ndarray, y: np.ndarray, model_class=MLPRegressor, kfolds: 
     logger.info("Treinamento concluído com sucesso")
     
     return final_model, metrics
+
+# def train_model_with_walk_forward(X, y, model_class=MLPRegressor, initial_train_size=100, test_size=10):
+#     """
+#     Treina modelo usando validação walk-forward.
+    
+#     Args:
+#         X: Features
+#         y: Target
+#         initial_train_size: Tamanho inicial do conjunto de treino
+#         test_size: Tamanho do conjunto de teste
+        
+#     Returns:
+#         tuple: (model, metrics)
+#     """
+    
+#     mse_scores = []
+#     mae_scores = []
+#     r2_scores = []
+    
+#     # Walk-forward validation
+#     for i in range(initial_train_size, len(X) - test_size, test_size):
+#         # Dividir dados
+#         X_train = X[:i]
+#         y_train = y[:i]
+#         X_test = X[i:i+test_size]
+#         y_test = y[i:i+test_size]
+        
+#         # Treinar modelo
+#         model = MLPRegressor(
+#             hidden_layer_sizes=(100, 50),
+#             max_iter=500,
+#             random_state=42
+#         )
+#         model.fit(X_train, y_train)
+        
+#         # Predizer
+#         y_pred = model.predict(X_test)
+        
+#         # Calcular métricas
+#         mse_scores.append(mean_squared_error(y_test, y_pred))
+#         mae_scores.append(mean_absolute_error(y_test, y_pred))
+#         r2_scores.append(r2_score(y_test, y_pred))
+    
+#     # Treinar modelo final com todos os dados
+#     final_model = model_class(
+#         hidden_layer_sizes=(100, 50),
+#         max_iter=500,
+#         random_state=42
+#     )
+    
+#     final_scaler = StandardScaler()
+#     X_scaled = final_scaler.fit_transform(X)
+    
+
+#     final_model.fit(X_scaled, y)
+#     final_model.scaler = final_scaler
+    
+#     # Retornar métricas
+#     metrics = {
+#         'mse_scores': mse_scores,
+#         'mae_scores': mae_scores,
+#         'r2_scores': r2_scores,
+#         'mse_mean': np.mean(mse_scores),
+#         'mae_mean': np.mean(mae_scores),
+#         'r2_mean': np.mean(r2_scores),
+#         'mse_std': np.std(mse_scores),
+#         'mae_std': np.std(mae_scores),
+#         'r2_std': np.std(r2_scores)
+#     }
+       
+#     logger.info("Treinamento concluído com sucesso")
+#     return final_model, metrics 
 
 def evaluate_model(model, X, y):
     """

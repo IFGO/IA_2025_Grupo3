@@ -1,7 +1,7 @@
 import argparse
 from utils.data_loader import load_data
 from models.model import MLP
-from trainer.trainer import train_model
+from trainer.trainer import train_model #, train_model_with_walk_forward
 from utils.logger import setup_logger
 
 def main():
@@ -55,7 +55,43 @@ def main():
         model_info = model.get_feature_importance()
         logger.info(f"Informações do modelo: {model_info}")
 
-        logger.info("Pipeline finalizado com sucesso!")
+        # logger.info("------------------------------------------------------")
+
+
+        # logger.info("Iniciando treinamento with forward...")
+        # # Método 2: Walk-Forward Validation (mais rigoroso)
+        # model_wf, metrics_wf = train_model_with_walk_forward(
+        #     X, y, 
+        #     model_class,
+        #     initial_train_size=100,  # Começar com 100 amostras
+        #     test_size=10             # Testar 10 dias por vez
+        # )
+
+
+        # # Extrair MSE das métricas
+        # mse = metrics_wf['mse_mean']
+        # mae = metrics_wf['mae_mean']
+        # r2 = metrics_wf['r2_mean']
+
+        # logger.info(f"Modelo treinado com sucesso!")
+        # logger.info(f"MSE: {mse:.6f} ± {metrics_wf['mse_std']:.6f}")
+        # logger.info(f"MAE: {mae:.6f} ± {metrics_wf['mae_std']:.6f}")
+        # logger.info(f"R²: {r2:.6f} ± {metrics_wf['r2_std']:.6f}")
+
+        # # Fazer predições de teste
+        # logger.info("Fazendo predições de teste...")
+        # test_predictions = model_wf.predict(X[:5])
+        # logger.info(f"Primeiras 5 predições: {test_predictions.flat[:5]}")
+        # logger.info(f"Valores reais ao lado: {y[:5]}")
+        # # logger.info(f"Diferenças previstas: {diff(test_predictions, y[:5]).flat[:5]}")
+
+        # # Informações do modelo
+        # model_info = model_wf.get_feature_importance()
+        # logger.info(f"Informações do modelo: {model_info}")
+
+        # logger.info("Pipeline finalizado com sucesso!")
+
+        
 
     except FileNotFoundError:
         logger.error(f"Arquivo não encontrado: {args.crypto}")
