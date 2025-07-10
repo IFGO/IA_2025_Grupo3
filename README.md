@@ -12,6 +12,7 @@ Este projeto usa uma rede neural do tipo **MLP (Multi-Layer Perceptron)** para p
 
 ---
 
+
 ## 📂 Estrutura do Projeto
 
 ```.

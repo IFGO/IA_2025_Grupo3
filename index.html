@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Interativo - Análise Preditiva de Criptomoedas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Soothing Neutrals & Teal -->
+    <!-- Application Structure Plan: A single-page, vertically-scrolling dashboard with a thematic, narrative flow. It starts with a project overview, moves to interactive data exploration (EDA), then deep-dives into model performance simulation, and concludes with advanced statistical analyses (ANOVA/T-Test). This structure guides the user logically from the general problem to specific, complex results, prioritizing understanding over a rigid reflection of the source document's chapter order. Key interactions include a cryptocurrency selector for the EDA and model/parameter selectors for the simulation, allowing users to dynamically compare results and explore "what-if" scenarios, which is the core goal of the application. -->
+    <!-- Visualization & Content Choices: 
+        - Project Pipeline (HTML/CSS): Goal: Organize. Visually explains the project workflow upfront for context. Method: Flexbox. Justification: Simple, clear, no library needed.
+        - EDA Stats (HTML Cards): Goal: Inform. Presents key volatility and price metrics. Method: Styled divs. Justification: Quick, scannable information.
+        - Price History (Chart.js Line): Goal: Change. Shows price trends and moving averages. Interaction: Hover for details. Justification: Essential for time-series context.
+        - Return Comparison (Chart.js Box Plot): Goal: Compare. Compares volatility across different assets. Interaction: Crypto selector. Justification: More effective than multiple histograms for comparing distributions.
+        - Predicted vs. Actual (Chart.js Scatter): Goal: Relationships. Evaluates model accuracy visually. Interaction: Model selector. Justification: Standard for regression model evaluation.
+        - Profit Simulation (Chart.js Line): Goal: Compare/Change. The key visualization, shows the financial utility of each model vs. a baseline. Interaction: Model/parameter selectors. Justification: Translates abstract metrics (RMSE) into a tangible outcome (profit).
+        - ANOVA/T-Test Results (HTML Tables): Goal: Inform/Compare. Presents statistical findings. Method: Styled tables. Justification: Clear, formal presentation of statistical results.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .chart-container { position: relative; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; height: 350px; max-height: 50vh; }
+        .smooth-scroll { scroll-behavior: smooth; }
+        .section-card { transition: all 0.3s ease-in-out; }
+        .nav-link { transition: all 0.2s ease; border-left: 3px solid transparent; }
+        .nav-link.active { border-left-color: #0d9488; color: #0d9488; background-color: #f0fdfa; }
+        .nav-link:hover { border-left-color: #ccfbf1; background-color: #f0fdfa; }
+        .stat-card {
+            background: linear-gradient(145deg, #ffffff, #e6e6e6);
+            border: 1px solid #e5e7eb;
+            box-shadow: 5px 5px 10px #d9d9d9, -5px -5px 10px #ffffff;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 smooth-scroll">
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 bg-white border-r border-gray-200 p-4 md:sticky md:top-0 md:h-screen">
+            <h1 class="text-2xl font-bold text-teal-700 mb-2">Análise IA</h1>
+            <p class="text-sm text-gray-500 mb-8">Previsão de Criptoativos</p>
+            <nav id="navigation" class="flex flex-col space-y-2">
+                <a href="#overview" class="nav-link active p-3 rounded-r-lg">Visão Geral do Projeto</a>
+                <a href="#eda" class="nav-link p-3 rounded-r-lg">Análise Exploratória</a>
+                <a href="#modeling" class="nav-link p-3 rounded-r-lg">Modelagem e Simulação</a>
+                <a href="#statistics" class="nav-link p-3 rounded-r-lg">Análise Estatística</a>
+                <a href="#architecture" class="nav-link p-3 rounded-r-lg">Arquitetura & Código</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 sm:p-6 md:p-10">
+            <!-- Section: Visão Geral -->
+            <section id="overview" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Visão Geral do Projeto</h2>
+                <p class="mb-8 text-gray-600">
+                    Esta aplicação traduz os requisitos do trabalho de IA em uma experiência interativa. O objetivo é desenvolver um pipeline completo para prever o preço de fechamento de criptomoedas, desde a coleta de dados e análise exploratória até a modelagem com Redes Neurais (MLP), comparação com modelos de baseline e simulação de uma estratégia de investimento. Cada etapa é visualizada para facilitar a compreensão dos conceitos e resultados.
+                </p>
+                
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h3 class="text-xl font-semibold mb-4">Fluxo de Trabalho do Projeto</h3>
+                    <div class="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 text-center text-sm">
+                        <div class="flex-1 flex items-center justify-center p-4 bg-teal-50 rounded-lg border-2 border-dashed border-teal-200"><span>1. Aquisição de Dados</span></div>
+                        <div class="flex items-center justify-center font-bold text-teal-500 text-2xl">&rarr;</div>
+                        <div class="flex-1 flex items-center justify-center p-4 bg-amber-50 rounded-lg border-2 border-dashed border-amber-200"><span>2. Engenharia de Features</span></div>
+                        <div class="flex items-center justify-center font-bold text-amber-500 text-2xl">&rarr;</div>
+                        <div class="flex-1 flex items-center justify-center p-4 bg-sky-50 rounded-lg border-2 border-dashed border-sky-200"><span>3. Treinamento de Modelos</span></div>
+                        <div class="flex items-center justify-center font-bold text-sky-500 text-2xl">&rarr;</div>
+                        <div class="flex-1 flex items-center justify-center p-4 bg-rose-50 rounded-lg border-2 border-dashed border-rose-200"><span>4. Avaliação & Simulação</span></div>
+                    </div>
+                </div>
+            </section>
+            <hr class="my-12">
+
+            <!-- Section: Análise Exploratória -->
+            <section id="eda" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Análise Exploratória de Dados (EDA)</h2>
+                <p class="mb-8 text-gray-600">
+                    Antes de qualquer previsão, é crucial entender os dados. Nesta seção, exploramos as características estatísticas e a volatilidade de diferentes criptomoedas. Selecione um ativo para ver sua análise detalhada e compare sua distribuição de retornos diários com outros.
+                </p>
+
+                <div class="mb-8">
+                    <label for="crypto-select-eda" class="block text-sm font-medium text-gray-700 mb-2">Selecione uma Criptomoeda para Análise:</label>
+                    <select id="crypto-select-eda" class="w-full md:w-1/3 p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                        <option value="BTC" selected>Bitcoin (BTC)</option>
+                        <option value="ETH">Ethereum (ETH)</option>
+                        <option value="LTC">Litecoin (LTC)</option>
+                        <option value="XRP">Ripple (XRP)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="stat-card p-4 rounded-lg text-center">
+                        <h4 class="text-sm font-semibold text-gray-500">Preço Médio (USD)</h4>
+                        <p id="stat-mean" class="text-2xl font-bold text-teal-600"></p>
+                    </div>
+                    <div class="stat-card p-4 rounded-lg text-center">
+                        <h4 class="text-sm font-semibold text-gray-500">Mediana do Preço (USD)</h4>
+                        <p id="stat-median" class="text-2xl font-bold"></p>
+                    </div>
+                    <div class="stat-card p-4 rounded-lg text-center">
+                        <h4 class="text-sm font-semibold text-gray-500">Desvio Padrão (Volatilidade)</h4>
+                        <p id="stat-std" class="text-2xl font-bold text-amber-600"></p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 mb-8 section-card">
+                    <h3 class="text-xl font-semibold mb-4">Série Histórica de Preços e Médias Móveis</h3>
+                    <div class="chart-container">
+                        <canvas id="priceHistoryChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 section-card">
+                    <h3 class="text-xl font-semibold mb-4">Comparação da Volatilidade (Distribuição dos Retornos Diários)</h3>
+                    <div class="chart-container">
+                        <canvas id="returnsBoxPlot"></canvas>
+                    </div>
+                </div>
+            </section>
+            <hr class="my-12">
+
+            <!-- Section: Modelagem e Simulação -->
+            <section id="modeling" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Modelagem Preditiva e Simulação</h2>
+                 <p class="mb-8 text-gray-600">
+                    O coração do projeto. Aqui, comparamos o desempenho de diferentes modelos preditivos. A avaliação vai além de métricas de erro como o RMSE; simulamos uma estratégia de investimento de $1.000 para ver qual modelo gera o maior retorno financeiro. Interaja com os controles para ver como cada modelo se comporta. A criptomoeda analisada aqui é o **Bitcoin (BTC)** como caso de estudo.
+                </p>
+
+                <div class="bg-gray-100 p-4 rounded-lg mb-8 flex flex-col md:flex-row items-center justify-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <label class="font-medium">Modelo:</label>
+                        <div id="model-selector" class="flex rounded-lg border border-gray-300 bg-white">
+                            <button data-model="mlp" class="model-btn bg-teal-500 text-white p-2 px-4 rounded-l-md">MLP</button>
+                            <button data-model="linear" class="model-btn p-2 px-4">Linear</button>
+                            <button data-model="poly" class="model-btn p-2 px-4 rounded-r-md">Polinomial</button>
+                        </div>
+                    </div>
+                    <div id="poly-degree-control" class="flex items-center gap-2 hidden">
+                        <label for="poly-degree" class="font-medium">Grau Polinomial:</label>
+                        <input type="range" id="poly-degree" min="2" max="10" value="2" class="w-36">
+                        <span id="poly-degree-value" class="font-mono text-teal-600 font-bold">2</span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 section-card">
+                        <h3 class="text-xl font-semibold mb-1">Simulação de Investimento ($1,000 Iniciais)</h3>
+                        <p id="profit-subtitle" class="text-sm text-gray-500 mb-4">Modelo: MLP</p>
+                        <div class="chart-container">
+                            <canvas id="profitEvolutionChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 section-card">
+                        <h3 class="text-xl font-semibold mb-1">Precisão do Modelo: Previsto vs. Real</h3>
+                        <p id="scatter-subtitle" class="text-sm text-gray-500 mb-4">Modelo: MLP</p>
+                        <div class="chart-container">
+                            <canvas id="scatterPlotChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                     <div class="stat-card p-4 rounded-lg text-center">
+                        <h4 class="text-sm font-semibold text-gray-500">Saldo Final (USD)</h4>
+                        <p id="metric-balance" class="text-2xl font-bold text-teal-600"></p>
+                    </div>
+                    <div class="stat-card p-4 rounded-lg text-center">
+                        <h4 class="text-sm font-semibold text-gray-500">RMSE</h4>
+                        <p id="metric-rmse" class="text-2xl font-bold"></p>
+                    </div>
+                    <div class="stat-card p-4 rounded-lg text-center">
+                        <h4 class="text-sm font-semibold text-gray-500">Correlação (Pearson)</h4>
+                        <p id="metric-corr" class="text-2xl font-bold"></p>
+                    </div>
+                </div>
+            </section>
+            <hr class="my-12">
+            
+            <!-- Section: Análise Estatística -->
+            <section id="statistics" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Análise Estatística Avançada</h2>
+                <p class="mb-8 text-gray-600">
+                    Um bom resultado de backtest pode ser sorte. Aqui, aplicamos testes estatísticos formais para verificar se os retornos da nossa estratégia são significativamente maiores que zero (Teste-t) e se os retornos médios diferem entre as várias criptomoedas (ANOVA). Isso adiciona um nível de rigor acadêmico às nossas conclusões.
+                </p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 section-card">
+                        <h3 class="text-xl font-semibold mb-4">Teste-t: O Retorno é Significativo?</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Testamos a hipótese de que o retorno médio diário da estratégia do modelo MLP para o BTC é maior que 0, com um nível de significância de 5%.
+                        </p>
+                        <div id="ttest-results" class="bg-teal-50 border border-teal-200 p-4 rounded-lg text-center">
+                            <p class="font-semibold">Resultado do Teste</p>
+                            <p class="text-3xl font-bold text-teal-600">Rejeitar H₀</p>
+                            <p class="text-xs text-gray-500 mt-2">(p-valor = 0.021)</p>
+                            <p class="mt-2 text-sm">Há evidência estatística de que a estratégia gera um retorno médio positivo.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 section-card">
+                        <h3 class="text-xl font-semibold mb-4">ANOVA: Os Ativos Performam de Forma Diferente?</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                           A ANOVA e o teste post-hoc de Tukey comparam os retornos médios entre os ativos. Um resultado "True" na coluna "Rejeitar H₀" sugere que os retornos dos dois ativos no par são estatisticamente diferentes.
+                        </p>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm text-left">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="p-2">Grupo 1</th>
+                                        <th class="p-2">Grupo 2</th>
+                                        <th class="p-2">p-valor</th>
+                                        <th class="p-2">Rejeitar H₀</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="anova-table">
+                                    <!-- Rows will be injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+             <hr class="my-12">
+
+            <!-- Section: Arquitetura -->
+            <section id="architecture" class="mb-16">
+                <h2 class="text-3xl font-bold mb-4">Arquitetura & Boas Práticas</h2>
+                <p class="mb-8 text-gray-600">
+                    Um projeto de ciência de dados robusto vai além dos modelos; ele requer uma engenharia de software sólida. O trabalho é estruturado em módulos, com testes automatizados e uma interface de linha de comando (CLI) para garantir reprodutibilidade, manutenção e flexibilidade.
+                </p>
+                 <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h3 class="text-xl font-semibold mb-4">Estrutura de Diretórios</h3>
+                    <pre class="bg-gray-800 text-white p-4 rounded-lg text-sm overflow-x-auto"><code>/projeto_cripto/
+|-- data/
+|-- src/
+|   |-- data_loader.py
+|   |-- features.py
+|   |-- models.py
+|   `-- analysis.py
+|-- notebooks/
+|-- tests/
+|-- main.py
+`-- requirements.txt</code></pre>
+                    <h3 class="text-xl font-semibold mt-6 mb-4">Execução via CLI</h3>
+                    <p class="mb-2 text-gray-600">O projeto pode ser executado via terminal, passando parâmetros como a criptomoeda e o modelo a ser utilizado:</p>
+                    <pre class="bg-gray-800 text-white p-4 rounded-lg text-sm"><code>python main.py --crypto ETH --model mlp</code></pre>
+                 </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- MOCK DATA ---
+    const mockData = {
+        BTC: {
+            dates: Array.from({ length: 365 }, (_, i) => new Date(2023, 0, 1 + i)),
+            prices: Array.from({ length: 365 }, (_, i) => 40000 + i * 20 + Math.sin(i / 20) * 2000 + Math.random() * 1000),
+            stats: { mean: '45,850.10', median: '45,500.25', std: '2,100.50' },
+            returns: Array.from({ length: 365 }, () => (Math.random() - 0.5) * 0.08)
+        },
+        ETH: {
+            dates: Array.from({ length: 365 }, (_, i) => new Date(2023, 0, 1 + i)),
+            prices: Array.from({ length: 365 }, (_, i) => 3000 + i * 5 + Math.sin(i / 15) * 500 + Math.random() * 200),
+            stats: { mean: '3,320.50', median: '3,300.00', std: '450.75' },
+            returns: Array.from({ length: 365 }, () => (Math.random() - 0.5) * 0.1)
+        },
+        LTC: {
+            dates: Array.from({ length: 365 }, (_, i) => new Date(2023, 0, 1 + i)),
+            prices: Array.from({ length: 365 }, (_, i) => 150 + i * 0.1 + Math.sin(i / 25) * 20 + Math.random() * 10),
+            stats: { mean: '165.80', median: '166.10', std: '15.20' },
+            returns: Array.from({ length: 365 }, () => (Math.random() - 0.5) * 0.12)
+        },
+        XRP: {
+            dates: Array.from({ length: 365 }, (_, i) => new Date(2023, 0, 1 + i)),
+            prices: Array.from({ length: 365 }, (_, i) => 0.8 + i*0.001 + Math.sin(i / 10) * 0.2 + Math.random() * 0.1),
+            stats: { mean: '0.95', median: '0.92', std: '0.25' },
+            returns: Array.from({ length: 365 }, () => (Math.random() - 0.5) * 0.15)
+        }
+    };
+
+    const modelPerformance = {
+        mlp: { rmse: 850.75, corr: 0.97, balance: 2350.60, actual: [], predicted: [], profit: [] },
+        linear: { rmse: 1250.50, corr: 0.92, balance: 950.75, actual: [], predicted: [], profit: [] },
+        poly: {}
+    };
+
+    // --- GENERATE MODEL MOCK DATA ---
+    function generateModelData(basePrices, volatility, bias) {
+        const actual = basePrices.slice(-100);
+        const predicted = actual.map(p => p + (Math.random() - 0.5) * volatility + bias);
+        const profit = [1000];
+        for (let i = 1; i < actual.length; i++) {
+            const lastBalance = profit[profit.length - 1];
+            const signal = predicted[i] > actual[i-1] ? 1 : 0;
+            const marketReturn = (actual[i] - actual[i-1]) / actual[i-1];
+            profit.push(lastBalance * (1 + signal * marketReturn));
+        }
+        return { actual, predicted, profit };
+    }
+    
+    const btcPrices = mockData.BTC.prices;
+    modelPerformance.mlp = { ...modelPerformance.mlp, ...generateModelData(btcPrices, 1500, 50) };
+    modelPerformance.linear = { ...modelPerformance.linear, ...generateModelData(btcPrices, 2500, -200) };
+    
+    for (let i = 2; i <= 10; i++) {
+        const overfittingFactor = 1 + (i - 2) * 0.2;
+        const data = generateModelData(btcPrices, 1000 * overfittingFactor, Math.random() * 100);
+        modelPerformance.poly[i] = {
+            rmse: 980.20 * overfittingFactor,
+            corr: 0.95 / overfittingFactor,
+            balance: 1450.20 / overfittingFactor,
+            ...data
+        };
+    }
+
+    const anovaResults = [
+        { g1: 'BTC', g2: 'ETH', p: 0.895, reject: false },
+        { g1: 'BTC', g2: 'XRP', p: 0.041, reject: true },
+        { g1: 'BTC', g2: 'LTC', p: 0.750, reject: false },
+        { g1: 'ETH', g2: 'XRP', p: 0.098, reject: false },
+        { g1: 'ETH', g2: 'LTC', p: 0.950, reject: false },
+        { g1: 'LTC', g2: 'XRP', p: 0.025, reject: true },
+    ];
+
+    // --- CHART INSTANCES ---
+    let priceHistoryChart, returnsBoxPlot, profitEvolutionChart, scatterPlotChart;
+
+    // --- CHART CONFIGS ---
+    const commonChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'top' },
+            tooltip: {
+                mode: 'index',
+                intersect: false,
+            }
+        },
+        scales: {
+            x: { 
+                grid: { display: false } 
+            },
+            y: { 
+                grid: { color: '#e5e7eb' }
+            }
+        }
+    };
+    
+    const timeScaleOptions = {
+        ...commonChartOptions,
+        scales: {
+            x: {
+                type: 'time',
+                time: { unit: 'month' },
+                grid: { display: false }
+            },
+            y: {
+                grid: { color: '#e5e7eb' }
+            }
+        }
+    }
+
+
+    // --- UI ELEMENTS ---
+    const edaSelect = document.getElementById('crypto-select-eda');
+    const modelSelector = document.getElementById('model-selector');
+    const polyDegreeSlider = document.getElementById('poly-degree');
+    const polyDegreeValue = document.getElementById('poly-degree-value');
+    const polyDegreeControl = document.getElementById('poly-degree-control');
+
+    // --- INITIALIZATION ---
+    function init() {
+        setupEventListeners();
+        updateEDA('BTC');
+        updateModeling('mlp');
+        populateAnovaTable();
+        setupNavigation();
+    }
+
+    // --- EVENT LISTENERS ---
+    function setupEventListeners() {
+        edaSelect.addEventListener('change', (e) => updateEDA(e.target.value));
+
+        modelSelector.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                const model = e.target.dataset.model;
+                modelSelector.querySelectorAll('button').forEach(btn => {
+                    btn.classList.remove('bg-teal-500', 'text-white');
+                });
+                e.target.classList.add('bg-teal-500', 'text-white');
+                polyDegreeControl.classList.toggle('hidden', model !== 'poly');
+                updateModeling(model, polyDegreeSlider.value);
+            }
+        });
+        
+        polyDegreeSlider.addEventListener('input', (e) => {
+            const degree = e.target.value;
+            polyDegreeValue.textContent = degree;
+            updateModeling('poly', degree);
+        });
+    }
+
+    // --- UPDATE FUNCTIONS ---
+    function updateEDA(crypto) {
+        const data = mockData[crypto];
+        
+        document.getElementById('stat-mean').textContent = data.stats.mean;
+        document.getElementById('stat-median').textContent = data.stats.median;
+        document.getElementById('stat-std').textContent = data.stats.std;
+
+        updatePriceHistoryChart(data);
+        updateReturnsBoxPlot();
+    }
+    
+    function updateModeling(model, degree = 2) {
+        let performance = modelPerformance[model];
+        if (model === 'poly') {
+            performance = modelPerformance.poly[degree];
+        }
+
+        document.getElementById('profit-subtitle').textContent = `Modelo: ${model.toUpperCase()}${model === 'poly' ? ` (G=${degree})` : ''}`;
+        document.getElementById('scatter-subtitle').textContent = `Modelo: ${model.toUpperCase()}${model === 'poly' ? ` (G=${degree})` : ''}`;
+
+        document.getElementById('metric-balance').textContent = `$${performance.balance.toFixed(2)}`;
+        document.getElementById('metric-rmse').textContent = performance.rmse.toFixed(2);
+        document.getElementById('metric-corr').textContent = performance.corr.toFixed(2);
+
+        updateProfitChart(performance);
+        updateScatterPlot(performance);
+    }
+    
+    function populateAnovaTable() {
+        const tableBody = document.getElementById('anova-table');
+        tableBody.innerHTML = '';
+        anovaResults.forEach(res => {
+            const row = `
+                <tr class="border-b border-gray-200">
+                    <td class="p-2 font-mono">${res.g1}</td>
+                    <td class="p-2 font-mono">${res.g2}</td>
+                    <td class="p-2 font-mono">${res.p.toFixed(3)}</td>
+                    <td class="p-2 font-semibold ${res.reject ? 'text-green-600' : 'text-red-600'}">${res.reject ? 'True' : 'False'}</td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+    }
+
+    // --- CHART UPDATERS ---
+    function updatePriceHistoryChart(data) {
+        if (priceHistoryChart) priceHistoryChart.destroy();
+        const ctx = document.getElementById('priceHistoryChart').getContext('2d');
+        
+        const movingAverage = (arr, window) => {
+            let result = [];
+            for (let i = 0; i < arr.length; i++) {
+                if (i < window - 1) {
+                    result.push(null);
+                } else {
+                    result.push(arr.slice(i - window + 1, i + 1).reduce((a, b) => a + b, 0) / window);
+                }
+            }
+            return result;
+        };
+
+        priceHistoryChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.dates,
+                datasets: [
+                    {
+                        label: 'Preço de Fechamento',
+                        data: data.prices,
+                        borderColor: '#0d9488', // teal-600
+                        backgroundColor: '#ccfbf1', // teal-100
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Média Móvel 30d',
+                        data: movingAverage(data.prices, 30),
+                        borderColor: '#f59e0b', // amber-500
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.1
+                    },
+                     {
+                        label: 'Média Móvel 90d',
+                        data: movingAverage(data.prices, 90),
+                        borderColor: '#ef4444', // red-500
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: timeScaleOptions
+        });
+    }
+
+    async function updateReturnsBoxPlot() {
+        if (returnsBoxPlot) returnsBoxPlot.destroy();
+        const ctx = document.getElementById('returnsBoxPlot').getContext('2d');
+        
+        // Dynamic import for the boxplot controller
+        const { BoxAndWiskers, Violin } = await import('https://unpkg.com/chartjs-chart-box-and-violin-plot/build/index.js');
+
+        returnsBoxPlot = new Chart(ctx, {
+            type: 'boxplot',
+            data: {
+                labels: Object.keys(mockData),
+                datasets: [{
+                    label: 'Distribuição dos Retornos Diários',
+                    data: Object.values(mockData).map(d => d.returns),
+                    backgroundColor: '#ccfbf1', // teal-100
+                    borderColor: '#0d9488', // teal-600
+                    borderWidth: 1,
+                    padding: 10,
+                    itemRadius: 2,
+                }]
+            },
+            options: {
+                 ...commonChartOptions,
+                 plugins: {
+                     legend: { display: false }
+                 }
+            }
+        });
+    }
+
+    function updateProfitChart(performanceData) {
+        if (profitEvolutionChart) profitEvolutionChart.destroy();
+        const ctx = document.getElementById('profitEvolutionChart').getContext('2d');
+        
+        const buyAndHold = [1000];
+        for(let i = 1; i < performanceData.actual.length; i++) {
+            buyAndHold.push(buyAndHold[i-1] * (performanceData.actual[i] / performanceData.actual[i-1]));
+        }
+
+        profitEvolutionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: performanceData.profit.length}, (_,i) => `Dia ${i+1}`),
+                datasets: [
+                    {
+                        label: 'Estratégia do Modelo',
+                        data: performanceData.profit,
+                        borderColor: '#0d9488',
+                        backgroundColor: '#ccfbf1',
+                        fill: false,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Comprar e Manter (Buy & Hold)',
+                        data: buyAndHold,
+                        borderColor: '#f59e0b',
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: commonChartOptions
+        });
+    }
+
+    function updateScatterPlot(performanceData) {
+        if (scatterPlotChart) scatterPlotChart.destroy();
+        const ctx = document.getElementById('scatterPlotChart').getContext('2d');
+
+        scatterPlotChart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Previsto vs. Real',
+                    data: performanceData.actual.map((val, i) => ({ x: val, y: performanceData.predicted[i] })),
+                    backgroundColor: 'rgba(13, 148, 136, 0.6)' // teal-600 with opacity
+                }]
+            },
+            options: {
+                ...commonChartOptions,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        title: { display: true, text: 'Preço Real (USD)' },
+                        grid: { display: false }
+                    },
+                    y: {
+                        title: { display: true, text: 'Preço Previsto (USD)' },
+                        grid: { color: '#e5e7eb' }
+                    }
+                }
+            }
+        });
+    }
+
+    // --- NAVIGATION ---
+    function setupNavigation() {
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('#navigation a');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href').substring(1) === entry.target.id) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, { rootMargin: '-30% 0px -70% 0px' });
+
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+        
+        navLinks.forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    }
+
+    init();
+});
+</script>
+
+</body>
+</html>
