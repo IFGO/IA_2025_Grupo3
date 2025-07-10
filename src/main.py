@@ -10,9 +10,9 @@ def main():
 
     parser = argparse.ArgumentParser(description="Crypto Price Predictor")
     parser.add_argument('--crypto', type=str, required=True, help='Caminho para CSV da criptomoeda')
-    parser.add_argument('--model', type=str, default="mlp", help='Tipo de modelo: mlp')
+    parser.add_argument('--model', type=str, default="mlp", help='Tipo de modelo: MLPRegressor')
     parser.add_argument('--kfolds', type=int, default=5, help='Número de K-Folds para validação')
-    parser.add_argument('--window_size', type=int, default=10, help='Tamanho da janela temporal')
+    parser.add_argument('--window_size', type=int, default=7, help='Tamanho da janela temporal')
 
     args = parser.parse_args()
 
@@ -24,7 +24,7 @@ def main():
 
         # Carregar dados
         logger.info("Carregando dados...")
-        X, y, _ = load_data(args.crypto, window_size=args.window_size)
+        X, y, _ = load_data(args.crypto)
         logger.info(f"Dados carregados: X={X.shape}, y={y.shape}")
 
         # Definir classe do modelo
@@ -47,8 +47,9 @@ def main():
         # Fazer predições de teste
         logger.info("Fazendo predições de teste...")
         test_predictions = model.predict(X[:5])
-        logger.info(f"Primeiras 5 predições: {test_predictions}")
-        logger.info(f"Valores reais: {y[:5]}")
+        logger.info(f"Primeiras 5 predições: {test_predictions.flat[:5]}")
+        logger.info(f"Valores reais ao lado: {y[:5]}")
+        # logger.info(f"Diferenças previstas: {diff(test_predictions, y[:5]).flat[:5]}")
 
         # Informações do modelo
         model_info = model.get_feature_importance()

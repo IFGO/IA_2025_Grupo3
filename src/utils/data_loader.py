@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def load_data(file_path: str, window_size: int = 7) -> Tuple[np.ndarray, np.ndarray, MinMaxScaler]:
+def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, MinMaxScaler]:
     """
     Load and preprocess crypto price data.
 
@@ -25,13 +25,11 @@ def load_data(file_path: str, window_size: int = 7) -> Tuple[np.ndarray, np.ndar
 
         scaler = MinMaxScaler()
         df['close_scaled'] = scaler.fit_transform(df[['close']])
+        df.rename(columns={'Volume BTC': 'Volume_BTC', 'Volume USDC': 'Volume_USDC'}, inplace=True)
 
-        data = df['close_scaled'].values
-        X, y = [], []
-
-        for i in range(window_size, len(data)):
-            X.append(data[i-window_size:i])
-            y.append(data[i])
+        # remove unnecessary columns
+        X = df.drop(columns=['date', 'symbol', 'close', 'close_scaled']).values
+        y = df['close_scaled'].values
 
         return np.array(X), np.array(y), scaler
     except Exception as e:
