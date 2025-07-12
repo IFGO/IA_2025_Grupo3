@@ -82,7 +82,6 @@ logger.info(f"  - Criptos para Análise Comparativa: {args.crypto_list_for_analy
 def download_crypto_data(crypto_symbol: str) -> Optional[pd.DataFrame]:
     """
     Baixa dados históricos diários de criptomoedas do cryptodatadownload.com.
-
     Args:
         crypto_symbol (str): O símbolo da criptomoeda (ex: 'BTC').
 
@@ -90,35 +89,51 @@ def download_crypto_data(crypto_symbol: str) -> Optional[pd.DataFrame]:
         Optional[pd.DataFrame]: DataFrame com dados históricos ou None se falhar.
     """
     base_url = "https://www.cryptodatadownload.com/cdd/"
-    filename = f"Coinbase_{crypto_symbol}USD_d.csv"
+    filename = f"Poloniex_{crypto_symbol}USDC_d.csv"
     url = f"{base_url}{filename}"
+    local_path = f"./data/{filename}"
     
     logger.info(f"Tentando baixar dados para {crypto_symbol} de {url}")
     
     try:
-        # response = requests.get(url)
-        # response.raise_for_status()
+        # Criar diretório data se não existir
+        import os
+        os.makedirs("./data", exist_ok=True)
         
-        # csv_data = StringIO(response.text)
-        # df = pd.read_csv(csv_data, skiprows=1)
-        df = pd.read_csv("./data/Bitfinex_BTCUSD_d.csv", skiprows=1)
+        # Verificar se arquivo já existe localmente
+        if not os.path.exists(local_path):
+            logger.info(f"Arquivo local não encontrado. Baixando de {url}")
+            response = requests.get(url)
+            response.raise_for_status()
+            
+            # Salvar arquivo localmente
+            with open(local_path, 'w') as f:
+                f.write(response.text)
+            logger.info(f"Arquivo salvo em {local_path}")
+        else:
+            logger.info(f"Usando arquivo local existente: {local_path}")
+        
+        # Ler arquivo local
+        df = pd.read_csv(local_path, skiprows=1)
+
+        # unix,date,symbol,open,high,low,close,Volume USD,Volume BTC
 
         df.rename(columns={
             'Date': 'date', 'Symbol': 'symbol', 'Open': 'open', 'High': 'high', 
-            'Low': 'low', 'Close': 'close', 'Volume USD': 'volume'
+            'Low': 'low', 'Close': 'close', 'Volume USDC': 'volume_usdc', f'Volume {crypto_symbol}': 'volume_crypto'
         }, inplace=True)
         
         # Selecionar e reordenar colunas de interesse
-        df = df[['date', 'symbol', 'open', 'high', 'low', 'close', 'volume']]
+        df = df[['date', 'symbol', 'open', 'high', 'low', 'close', 'volume_usdc', 'volume_crypto']]
         df['date'] = pd.to_datetime(df['date'])
         df.sort_values(by='date', inplace=True)
         df.set_index('date', inplace=True)
         
-        logger.info(f"Dados para {crypto_symbol} baixados e processados com sucesso.")
+        logger.info(f"Dados para {crypto_symbol} processados com sucesso.")
         return df
 
     except requests.exceptions.HTTPError as http_err:
-        logger.error(f"Erro HTTP ao baixar {crypto_symbol}: {http_err}. A combinação pode não existir em Coinbase.")
+        logger.error(f"Erro HTTP ao baixar {crypto_symbol}: {http_err}")
         return None
     except Exception as e:
         logger.error(f"Erro inesperado ao processar {crypto_symbol}: {e}")
@@ -201,10 +216,15 @@ def create_model_pipeline(model_type: str, poly_degree: int = 2) -> Pipeline:
     if model_type == 'mlp':
         model = MLPRegressor(
             hidden_layer_sizes=(100, 50),
-            max_iter=500,
+            max_iter=2000,              # Aumentar para 2000
             random_state=42,
             early_stopping=True,
-            n_iter_no_change=10
+            validation_fraction=0.15,   # Aumentar validação
+            n_iter_no_change=50,        # Mais paciência para convergir
+            alpha=0.001,                # Regularização mais forte
+            learning_rate_init=0.01,    # Taxa de aprendizado maior
+            solver='adam',
+            tol=1e-4                    # Tolerância para convergência
         )
         return Pipeline([('scaler', StandardScaler()), ('mlp', model)])
     
@@ -358,16 +378,21 @@ def perform_anova_analysis(all_returns_df: pd.DataFrame) -> Dict:
     logger.info("Realizando Análise de Variância (ANOVA)...")
     
     # Modelo ANOVA
-    model = ols('return ~ C(crypto_symbol)', data=all_returns_df).fit()
+    all_returns_df = all_returns_df.dropna().copy()
+    all_returns_df = all_returns_df[~np.isinf(all_returns_df['return'])]
+    all_returns_df = all_returns_df.rename(columns={'return': 'daily_return'})
+
+    model = ols('daily_return ~ C(crypto_symbol)', data=all_returns_df).fit()
+    # model = ols('return ~ C(crypto_symbol)', data=all_returns_df).fit()
     anova_table = sm.stats.anova_lm(model, typ=2)
-    anova_p_value = anova_table['PR(>F)'][0]
+    anova_p_value = anova_table['PR(>F)'].iloc[0]
     
     results = {"anova_p_value": anova_p_value}
     
     if anova_p_value < 0.05:
         logger.info("ANOVA significativa. Realizando teste post-hoc de Tukey...")
         tukey_results = pairwise_tukeyhsd(
-            endog=all_returns_df['return'],
+            endog=all_returns_df['daily_return'],
             groups=all_returns_df['crypto_symbol'],
             alpha=0.05
         )
@@ -484,7 +509,10 @@ if main_data is not None:
     axes[1].set_ylabel('Preço Previsto (USD)')
     
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+    plt.savefig('crypto_analysis_results.png', dpi=150, bbox_inches='tight')
+    logger.info("Gráficos salvos em 'crypto_analysis_results.png'")
+    plt.close()
 
 else:
     logger.critical(f"Não foi possível executar o pipeline pois os dados para {args.crypto} não puderam ser baixados.")
