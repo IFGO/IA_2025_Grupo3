@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 # -----------------------------------------------------------------------------
 class Args:
     # --- PARÂMETROS CONFIGURÁVEIS ---
-    model: str = 'mlp'   # Opções: 'mlp', 'linear', 'poly'
+    model: str = 'linear'   # Opções: 'mlp', 'linear', 'poly'
     poly_degree: int = 2 # Grau para o modelo polinomial (usado se model='poly')
     kfolds: int = 5
     investment: float = 1000.0
@@ -89,7 +89,10 @@ def load_crypto_data_from_path(file_path: str) -> Optional[pd.DataFrame]:
         column_mapping = {
             'Date': 'date', 'Symbol': 'symbol', 'Open': 'open', 'High': 'high', 
             'Low': 'low', 'Close': 'close', 'Volume USD': 'volume',
-            'Volume': 'volume' # Adiciona mapeamento para 'Volume' sem 'USD'
+            'Volume': 'volume', # Adiciona mapeamento para 'Volume' sem 'USD'
+            'Volume AAVE': 'volume_aave', 'Volume BTC': 'volume_btc',
+            'buyTakerAmount': 'buy_taker_amount', 'buyTakerQuantity': 'buy_taker_quantity',
+            'tradeCount': 'trade_count', 'weightedAverage': 'weighted_average'
         }
         
         # Renomeia apenas as colunas que existem no DataFrame
@@ -397,7 +400,7 @@ uploaded = "./data/Bitfinex_BTCUSD_d.csv" # files.upload() # Simula o upload de 
 if not uploaded:
     logger.critical("Nenhum arquivo foi carregado. Encerrando.")
 else:
-    file_name = "Bitfinex_BTCUSD_d.csv"
+    file_name = "Poloniex_AAVEBTC_d.csv"  # Simula o nome do arquivo carregado
 
     # --- PASSO 1: Carregar e Processar Dados do Arquivo ---
     main_data = load_crypto_data_from_path(file_name)
