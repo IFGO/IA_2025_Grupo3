@@ -6,3 +6,6 @@ torch
 pytest
 pytest-cov
 window_size
+requests
+scipy
+statsmodels
