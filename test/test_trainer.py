@@ -214,34 +214,6 @@ class TestTrainer:
         assert isinstance(metrics, dict)
         assert len(metrics) > 0
 
-    @pytest.mark.skip
-    def test_evaluate_predictions_perfect_prediction(self):
-        """Testa avaliação com predição perfeita"""
-        y_true = np.array([45000, 46000, 44000])
-        y_pred = y_true.copy()  # Predição perfeita
-        
-        metrics = evaluate_predictions(y_true, y_pred)
-        
-        # Com predição perfeita, RMSE deve ser 0 e R² deve ser 1
-        if 'rmse' in metrics:
-            assert metrics['rmse'] == 0 or metrics['rmse'] < 1e-10
-        if 'r2' in metrics:
-            assert abs(metrics['r2'] - 1.0) < 1e-10
-
-    @pytest.mark.skip
-    def test_evaluate_predictions_poor_prediction(self):
-        """Testa avaliação com predição ruim"""
-        y_true = np.array([45000, 46000, 44000])
-        y_pred = np.array([20000, 70000, 30000])  # Predições muito ruins
-        
-        metrics = evaluate_predictions(y_true, y_pred)
-        
-        # Com predição ruim, RMSE deve ser alto e R² baixo
-        if 'rmse' in metrics:
-            assert metrics['rmse'] > 1000
-        if 'r2' in metrics:
-            assert metrics['r2'] < 0.5
-
     def test_evaluate_predictions_single_value(self):
         """Testa avaliação com um único valor"""
         y_true = np.array([45000])

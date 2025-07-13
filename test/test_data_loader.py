@@ -118,20 +118,6 @@ class TestDataLoader:
             assert result is not None
             mock_prepare.assert_called_once()
 
-    @pytest.mark.skip
-    @patch('utils.data_loader.requests')
-    @patch('utils.data_loader.os.path.exists')
-    def test_download_crypto_data_http_error(self, mock_exists, mock_requests):
-        """Testa erro HTTP no download"""
-        # Forçar que o arquivo não existe para que tente fazer download
-        mock_exists.return_value = False
-        
-        # Mock do erro HTTP
-        mock_requests.get.side_effect = Exception("HTTP Error")
-        
-        result = download_crypto_data('BTC')
-        assert result is None
-
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])

@@ -114,22 +114,6 @@ class TestFeatures:
         assert isinstance(result, pd.DataFrame)
         assert len(result) <= len(sample_crypto_df)  # Pode ter menos linhas devido a janelas
 
-    @pytest.mark.skip
-    def test_add_technical_indicators_expected_indicators(self, sample_crypto_df):
-        """Testa se indicadores esperados são criados"""
-        result = add_technical_indicators(sample_crypto_df.copy())
-        
-        # Lista de indicadores comuns que podem existir
-        possible_indicators = [
-            'sma_5', 'sma_10', 'sma_20', 'ema_12', 'ema_26',
-            'rsi', 'macd', 'macd_signal', 'bb_upper', 'bb_lower',
-            'volume_sma', 'price_change', 'volatility'
-        ]
-        
-        # Verificar se pelo menos alguns indicadores foram adicionados
-        new_cols = [col for col in result.columns if col not in sample_crypto_df.columns]
-        assert len(new_cols) > 0  # Pelo menos uma nova coluna
-
     def test_add_technical_indicators_minimal_data(self, minimal_df):
         """Testa indicadores com dados mínimos"""
         result = add_technical_indicators(minimal_df.copy())
@@ -153,15 +137,6 @@ class TestFeatures:
         assert isinstance(result, pd.DataFrame)
         assert len(result) > 0
 
-    @pytest.mark.skip
-    def test_create_lagged_features_single_lag(self, minimal_df):
-        """Testa criação de lag único"""
-        result = create_lagged_features(minimal_df.copy(), lags=[1])
-        
-        assert isinstance(result, pd.DataFrame)
-        # Com lag=1, deve ter uma linha a menos
-        assert len(result) == len(minimal_df) - 1
-
     def test_create_lagged_features_large_lag(self, minimal_df):
         """Testa comportamento com lag grande"""
         # Lag maior que os dados disponíveis
@@ -178,22 +153,6 @@ class TestFeatures:
         
         assert isinstance(result, pd.DataFrame)
         assert result.shape == sample_crypto_df.shape
-
-    @pytest.mark.skip
-    def test_normalize_features_values_in_range(self, minimal_df):
-        """Testa se valores normalizados estão no range esperado"""
-        result = normalize_features(minimal_df.copy())
-        
-        # Para colunas numéricas, valores devem estar normalizados
-        numeric_cols = result.select_dtypes(include=[np.number]).columns
-        
-        for col in numeric_cols:
-            if not result[col].empty and result[col].notna().any():
-                # Verificar se valores estão em um range razoável (ex: 0-1 ou -1 a 1)
-                col_values = result[col].dropna()
-                if len(col_values) > 0:
-                    assert col_values.min() >= -5  # Range razoável para normalização
-                    assert col_values.max() <= 5
 
     def test_normalize_features_preserves_structure(self, sample_crypto_df):
         """Testa se a estrutura do DataFrame é preservada"""
@@ -220,23 +179,6 @@ class TestFeatures:
         assert isinstance(df_normalized, pd.DataFrame)
         assert len(df_normalized) > 0
         assert df_normalized.shape[1] >= df.shape[1]  # Mais features
-
-    @pytest.mark.skip
-    def test_create_features_comprehensive(self, sample_crypto_df):
-        """Testa create_features como função principal"""
-        result = create_features(sample_crypto_df.copy())
-        
-        # Verificações abrangentes
-        assert isinstance(result, pd.DataFrame)
-        assert len(result) > 0
-        
-        # Deve ter features adicionais
-        assert result.shape[1] > sample_crypto_df.shape[1]
-        
-        # Não deve ter valores infinitos
-        numeric_cols = result.select_dtypes(include=[np.number]).columns
-        for col in numeric_cols:
-            assert not np.isinf(result[col]).any(), f"Coluna {col} contém valores infinitos"
 
     # Testes de edge cases
     def test_features_with_nan_values(self):
