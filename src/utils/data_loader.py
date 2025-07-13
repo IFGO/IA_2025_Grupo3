@@ -2,36 +2,148 @@ import pandas as pd
 import numpy as np
 from typing import Tuple
 from sklearn.preprocessing import MinMaxScaler
+from typing import Optional, Tuple, Dict, List
+
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
-def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, MinMaxScaler]:
+# def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, MinMaxScaler]:
+#     """
+#     Load and preprocess crypto price data.
+
+#     Args:
+#         file_path (str): Path to CSV.
+#         window_size (int): Number of past timesteps to use.
+
+#     Returns:
+#         Tuple of input features, targets, and fitted scaler.
+#     """
+#     try:
+#         df = pd.read_csv(file_path, skiprows=1)
+#         df = df[::-1]  # Oldest first
+#         df['close'] = pd.to_numeric(df['close'], errors='coerce')
+#         df.dropna(subset=['close'], inplace=True)
+
+#         scaler = MinMaxScaler()
+#         df['close_scaled'] = scaler.fit_transform(df[['close']])
+#         df.rename(columns={'Volume BTC': 'Volume_BTC', 'Volume USDC': 'Volume_USDC'}, inplace=True)
+
+#         # remove unnecessary columns
+#         X = df.drop(columns=['date', 'symbol', 'close', 'close_scaled']).values
+#         y = df['close_scaled'].values
+
+#         return np.array(X), np.array(y), scaler
+#     except Exception as e:
+#         logger.error(f"Erro ao carregar dados: {e}")
+#         raise
+
+def prepare_data(crypto_symbol: str, df: pd.DataFrame) -> pd.DataFrame:
     """
-    Load and preprocess crypto price data.
+    Prepara os dados de criptomoedas para análise.
 
     Args:
-        file_path (str): Path to CSV.
-        window_size (int): Number of past timesteps to use.
+        df (pd.DataFrame): DataFrame com dados brutos.
 
     Returns:
-        Tuple of input features, targets, and fitted scaler.
+        pd.DataFrame: DataFrame preparado com colunas renomeadas e indexado por data.
     """
+    df.rename(columns={
+        'Date': 'date', 'Symbol': 'symbol', 'Open': 'open', 'High': 'high', 
+        'Low': 'low', 'Close': 'close', 'Volume USDC': 'volume_usdc', f'Volume {crypto_symbol}': 'volume_crypto'
+    }, inplace=True)
+    
+    # Selecionar e reordenar colunas de interesse
+    df = df[['date', 'symbol', 'open', 'high', 'low', 'close', 'volume_usdc', 'volume_crypto']]
+    df['date'] = pd.to_datetime(df['date'])
+    df.sort_values(by='date', inplace=True)
+    df.set_index('date', inplace=True)
+    
+    return df
+
+def download_crypto_data(crypto_symbol: str) -> Optional[pd.DataFrame]:
+    """
+    Baixa dados históricos diários de criptomoedas do cryptodatadownload.com.
+    Args:
+        crypto_symbol (str): O símbolo da criptomoeda (ex: 'BTC').
+
+    Returns:
+        Optional[pd.DataFrame]: DataFrame com dados históricos ou None se falhar.
+    """
+    base_url = "https://www.cryptodatadownload.com/cdd/"
+    filename = f"Poloniex_{crypto_symbol}USDC_d.csv"
+    url = f"{base_url}{filename}"
+    local_path = f"./data/{filename}"
+    
+    logger.info(f"Tentando baixar dados para {crypto_symbol} de {url}")
+    
     try:
-        df = pd.read_csv(file_path, skiprows=1)
-        df = df[::-1]  # Oldest first
-        df['close'] = pd.to_numeric(df['close'], errors='coerce')
-        df.dropna(subset=['close'], inplace=True)
+        # Criar diretório data se não existir
+       
+        os.makedirs("./data", exist_ok=True)
+        
+        # Verificar se arquivo já existe localmente
+        if not os.path.exists(local_path):
+            logger.info(f"Arquivo local não encontrado. Baixando de {url}")
+            response = requests.get(url)
+            response.raise_for_status()
+            
+            # Salvar arquivo localmente
+            with open(local_path, 'w') as f:
+                f.write(response.text)
+            logger.info(f"Arquivo salvo em {local_path}")
+        else:
+            logger.info(f"Usando arquivo local existente: {local_path}")
+        
+        # Ler arquivo local
+        df = pd.read_csv(local_path, skiprows=1)
 
-        scaler = MinMaxScaler()
-        df['close_scaled'] = scaler.fit_transform(df[['close']])
-        df.rename(columns={'Volume BTC': 'Volume_BTC', 'Volume USDC': 'Volume_USDC'}, inplace=True)
+        # unix,date,symbol,open,high,low,close,Volume USD,Volume BTC
 
+        df = prepare_data(crypto_symbol=crypto_symbol, df=df.copy())
+    
+        logger.info(f"Dados para {crypto_symbol} processados com sucesso.")
+        
         # remove unnecessary columns
-        X = df.drop(columns=['date', 'symbol', 'close', 'close_scaled']).values
-        y = df['close_scaled'].values
+#         X = df.drop(columns=['date', 'symbol', 'close', 'close_scaled']).values
+#         y = df['close_scaled'].values
 
-        return np.array(X), np.array(y), scaler
+#         return np.array(X), np.array(y), scaler        
+        return df
+
+    except requests.exceptions.HTTPError as http_err:
+        logger.error(f"Erro HTTP ao baixar {crypto_symbol}: {http_err}")
+        return None
     except Exception as e:
-        logger.error(f"Erro ao carregar dados: {e}")
+        logger.error(f"Erro inesperado ao processar {crypto_symbol}: {e}")
+        return None
+
+def read_crypto_data(crypto_symbol: str, file_path: str) -> Optional[pd.DataFrame]:
+    """
+    Lê dados de criptomoedas de um arquivo CSV.
+
+    Args:
+        file_path (str): Caminho para o arquivo CSV.
+
+    Returns:
+        pd.DataFrame: DataFrame com os dados lidos.
+    """
+    try: 
+        os.makedirs("./data", exist_ok=True)
+        
+        if not os.path.exists(file_path):
+           raise FileNotFoundError(f"Arquivo não encontrado: {file_path}")
+        else:
+            logger.info(f"Usando arquivo local existente: {file_path}")
+        
+        # Ler arquivo local
+        df = pd.read_csv(file_path, skiprows=1)    
+        df = prepare_data(crypto_symbol=crypto_symbol, df=df.copy())
+        logger.info(df.head())
+
+        return df 
+    except Exception as e:
+        logger.error(f"Erro ao ler dados de {file_path}: {e}")
         raise
+    

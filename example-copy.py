@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 # -----------------------------------------------------------------------------
 class Args:
     # --- PARÂMETROS CONFIGURÁVEIS ---
-    model: str = 'linear'   # Opções: 'mlp', 'linear', 'poly'
+    model: str = 'mlp'   # Opções: 'mlp', 'linear', 'poly'
     poly_degree: int = 2 # Grau para o modelo polinomial (usado se model='poly')
     kfolds: int = 5
     investment: float = 1000.0
@@ -400,7 +400,7 @@ uploaded = "./data/Bitfinex_BTCUSD_d.csv" # files.upload() # Simula o upload de 
 if not uploaded:
     logger.critical("Nenhum arquivo foi carregado. Encerrando.")
 else:
-    file_name = "Poloniex_AAVEBTC_d.csv"  # Simula o nome do arquivo carregado
+    file_name = "Bitfinex_BTCUSD_d.csv"  # Simula o nome do arquivo carregado
 
     # --- PASSO 1: Carregar e Processar Dados do Arquivo ---
     main_data = load_crypto_data_from_path(file_name)
@@ -431,6 +431,7 @@ else:
         final_strategy_balance = backtest_results['strategy_balance'].iloc[-1]
         final_buy_hold_balance = backtest_results['buy_hold_balance'].iloc[-1]
         
+        print(backtest_results['strategy_return'])
         # --- PASSO 4: Executar Teste de Hipótese para o Modelo Principal ---
         hypothesis_test_results = perform_hypothesis_test(backtest_results['strategy_return'])
 

@@ -1,51 +1,15 @@
 import argparse
-import pandas as pd
-from models.model import create_pipeline
-# from models.model_mlp import MLP
-# from models.model_poly import Poly
-# from models.model_linear import Linear
-# from sklearn.pipeline import Pipeline
-from utils.perform import perform_hypothesis_test, perform_anova_analysis
-from trainer.trainer import train_and_evaluate_model, run_backtest
-from utils.features import create_features
+from utils.data_loader import load_data
+from models.model import MLP
+from trainer.trainer import train_model #, train_model_with_walk_forward
 from utils.logger import setup_logger
 from views.graph import generate_graph
-from typing import Optional, Tuple, Dict, List
-from utils.data_loader import download_crypto_data, read_crypto_data
 
-logger = setup_logger("CryptoMLP")
+def main():
+    """Função principal do pipeline de treinamento."""
+    logger = setup_logger("CryptoMLP")
 
-def args_parser() -> None:
-    """
-    Classe de configuração de parâmetros para experimentos de previsão de preços de criptomoedas.
-
-    Esta classe centraliza todos os parâmetros ajustáveis do projeto, permitindo fácil customização
-    dos experimentos via alteração dos atributos. Os parâmetros controlam desde a escolha da criptomoeda,
-    modelo de regressão, janela temporal, até aspectos de investimento e análise comparativa.
-
-    Atributos:
-        crypto (str): Símbolo da criptomoeda a ser analisada (ex: 'BTC', 'ETH', 'LTC', 'XRP').
-        crypto_file (str): Caminho para o arquivo CSV contendo os dados históricos da criptomoeda.
-        model (str): Tipo de modelo de regressão a ser utilizado. Opções: 'mlp' (MLPRegressor), 
-            'linear' (Regressão Linear), 'poly' (Regressão Polinomial).
-        poly_degree (int): Grau do polinômio para o modelo polinomial (usado apenas se model='poly').
-        kfolds (int): Número de splits para validação cruzada temporal (TimeSeriesSplit).
-        investment (float): Valor inicial de investimento simulado para análise de retorno.
-        window_size (int): Tamanho da janela temporal (número de dias) usada para criação das features.
-        crypto_list_for_analysis (List[str]): Lista de símbolos de criptomoedas para análise estatística
-            comparativa entre diferentes ativos.
-
-    Exemplo de uso:
-        args = Args()
-        args.crypto = 'ETH'
-        args.model = 'poly'
-        args.poly_degree = 3
-    """
-
-    logger.info("Inicializando parser de argumentos")
     parser = argparse.ArgumentParser(description="Crypto Price Predictor")
-    parser.add_argument('--dwn-not-data-set', type=bool, default=False,
-                        help='Se True, baixa o dataset mais recente do cryptodatadownload.com')
     parser.add_argument('--investment', type=float, default=1000.0, help='Valor inicial do investimento em USD')
     parser.add_argument('--poly_degree', type=int, default=2, help='Grau do polinômio para o modelo polinomial (usado se model=poly)')
     parser.add_argument('--crypto_list_for_analysis', nargs='+', default=['BTC', 'ETH', 'LTC', 'XRP', 'DOGE'],
@@ -58,33 +22,54 @@ def args_parser() -> None:
     parser.add_argument('--window_size', type=int, default=7, help='Tamanho da janela temporal')
 
     args = parser.parse_args()
-    logger.info("{args} argumentos carregados com sucesso")
-    return args
-
-def load_data(crypto_symbol: str, crypto_file: str, dwn_not_data_set: bool) -> Optional[pd.DataFrame]:
-    if dwn_not_data_set:
-        logger.info("Baixando o dataset mais recente...")
-        df = download_crypto_data(crypto_symbol, crypto_file)
-        return df
-    else:
-        logger.info(f"Lendo dados do arquivo: {crypto_file}")
-        df = read_crypto_data(crypto_symbol, crypto_file)
-        return df
-
-def main():
-    """Função principal do pipeline de treinamento."""
-    args = args_parser()
 
     try:
-        main_data = load_data(args.crypto, args.crypto_file, args.dwn_not_data_set)
-        
+        # logger.info("Iniciando pipeline...")
+        # logger.info(f"Arquivo de dados: {args.crypto}")
+        # logger.info(f"Modelo: {args.model}")
+        # logger.info(f"K-Folds: {args.kfolds}")
+
+        # # Carregar dados
+        # logger.info("Carregando dados...")
+        # X, y, _ = load_data(args.crypto)
+        # logger.info(f"Dados carregados: X={X.shape}, y={y.shape}")
+
+        # # Definir classe do modelo
+        # model_class = MLP
+
+        # # Treinar modelo
+        # logger.info("Iniciando treinamento...")
+        # model, metrics = train_model(X, y, model_class, args.kfolds)
+
+        # # Extrair MSE das métricas
+        # mse = metrics['mse_mean']
+        # mae = metrics['mae_mean']
+        # r2 = metrics['r2_mean']
+
+        # logger.info(f"Modelo treinado com sucesso!")
+        # logger.info(f"MSE: {mse:.6f} ± {metrics['mse_std']:.6f}")
+        # logger.info(f"MAE: {mae:.6f} ± {metrics['mae_std']:.6f}")
+        # logger.info(f"R²: {r2:.6f} ± {metrics['r2_std']:.6f}")
+
+        # # Fazer predições de teste
+        # logger.info("Fazendo predições de teste...")
+        # test_predictions = model.predict(X[:5])
+        # logger.info(f"Primeiras 5 predições: {test_predictions.flat[:5]}")
+        # logger.info(f"Valores reais ao lado: {y[:5]}")
+        # # logger.info(f"Diferenças previstas: {diff(test_predictions, y[:5]).flat[:5]}")
+
+        # # Informações do modelo
+        # model_info = model.get_feature_importance()
+        # logger.info(f"Informações do modelo: {model_info}")
+
         featured_data = create_features(main_data.copy())
 
         # --- PASSO 2: Treinar o Modelo Selecionado ---
-        pipeline = create_pipeline(args.model, featured_data, args.poly_degree)
-        logger.info(f"Pipeline criado com sucesso. {pipeline}")
-    
-        logger.info(f"Treinando o modelo com: \n [ {featured_data.head()} ] \n model {args.model} com {args.kfolds} folds...")
+        if args.model == 'poly':
+            pipeline = create_model_pipeline(args.model, poly_degree=args.poly_degree)
+        else:
+            pipeline = create_model_pipeline(args.model)
+
         predictions_df, avg_rmse, avg_corr = train_and_evaluate_model(
             featured_data, pipeline, n_splits=args.kfolds
         )
@@ -110,7 +95,7 @@ def main():
         all_returns_df = pd.concat(all_returns_list)
         
         # --- PASSO 6: Executar ANOVA ---
-        anova_results = perform_anova_analysis(all_returns_df)    
+        anova_results = perform_anova_analysis(all_returns_df)
 
         # --- PASSO 7: Exibir Resultados ---
         logger.info("\n" + "="*50 + "\nRESULTADOS FINAIS\n" + "="*50)
@@ -145,8 +130,10 @@ def main():
         else:
             print("\nTeste de Tukey não foi realizado (ANOVA não significativa).")
 
-        logger.info("Criango gráficos...")
-        generate_graph(args, backtest_results, predictions_df)     
+
+        generate_graph(args, backtest_results, predictions_df)    
+
+        
 
     except FileNotFoundError:
         logger.error(f"Arquivo não encontrado: {args.crypto}")
