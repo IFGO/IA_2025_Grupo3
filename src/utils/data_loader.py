@@ -1,43 +1,11 @@
 import pandas as pd
-import numpy as np
-from typing import Tuple
-from sklearn.preprocessing import MinMaxScaler
-from typing import Optional, Tuple, Dict, List
-
+import requests
 import logging
 import os
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, MinMaxScaler]:
-#     """
-#     Load and preprocess crypto price data.
-
-#     Args:
-#         file_path (str): Path to CSV.
-#         window_size (int): Number of past timesteps to use.
-
-#     Returns:
-#         Tuple of input features, targets, and fitted scaler.
-#     """
-#     try:
-#         df = pd.read_csv(file_path, skiprows=1)
-#         df = df[::-1]  # Oldest first
-#         df['close'] = pd.to_numeric(df['close'], errors='coerce')
-#         df.dropna(subset=['close'], inplace=True)
-
-#         scaler = MinMaxScaler()
-#         df['close_scaled'] = scaler.fit_transform(df[['close']])
-#         df.rename(columns={'Volume BTC': 'Volume_BTC', 'Volume USDC': 'Volume_USDC'}, inplace=True)
-
-#         # remove unnecessary columns
-#         X = df.drop(columns=['date', 'symbol', 'close', 'close_scaled']).values
-#         y = df['close_scaled'].values
-
-#         return np.array(X), np.array(y), scaler
-#     except Exception as e:
-#         logger.error(f"Erro ao carregar dados: {e}")
-#         raise
 
 def prepare_data(crypto_symbol: str, df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -56,7 +24,10 @@ def prepare_data(crypto_symbol: str, df: pd.DataFrame) -> pd.DataFrame:
     
     # Selecionar e reordenar colunas de interesse
     df = df[['date', 'symbol', 'open', 'high', 'low', 'close', 'volume_usdc', 'volume_crypto']]
+    
+    df = df.copy()
     df['date'] = pd.to_datetime(df['date'])
+
     df.sort_values(by='date', inplace=True)
     df.set_index('date', inplace=True)
     
@@ -139,11 +110,9 @@ def read_crypto_data(crypto_symbol: str, file_path: str) -> Optional[pd.DataFram
         
         # Ler arquivo local
         df = pd.read_csv(file_path, skiprows=1)    
-        df = prepare_data(crypto_symbol=crypto_symbol, df=df.copy())
-        logger.info(df.head())
+        df = prepare_data(crypto_symbol=crypto_symbol, df=df.copy())        
 
         return df 
     except Exception as e:
         logger.error(f"Erro ao ler dados de {file_path}: {e}")
         raise
-    

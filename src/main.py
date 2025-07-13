@@ -1,17 +1,14 @@
 import argparse
 import pandas as pd
 from models.model import create_pipeline
-# from models.model_mlp import MLP
-# from models.model_poly import Poly
-# from models.model_linear import Linear
-# from sklearn.pipeline import Pipeline
 from utils.perform import perform_hypothesis_test, perform_anova_analysis
 from trainer.trainer import train_and_evaluate_model, run_backtest
 from utils.features import create_features
 from utils.logger import setup_logger
 from views.graph import generate_graph
-from typing import Optional, Tuple, Dict, List
+from typing import Optional
 from utils.data_loader import download_crypto_data, read_crypto_data
+from views.table import print_table
 
 logger = setup_logger("CryptoMLP")
 
@@ -48,6 +45,8 @@ def args_parser() -> None:
                         help='Se True, baixa o dataset mais recente do cryptodatadownload.com')
     parser.add_argument('--investment', type=float, default=1000.0, help='Valor inicial do investimento em USD')
     parser.add_argument('--poly_degree', type=int, default=2, help='Grau do polinômio para o modelo polinomial (usado se model=poly)')
+    parser.add_argument('--show_anova', type=bool, default=False,
+                        help='Se True, executa análise ANOVA para comparação entre criptomoedas')
     parser.add_argument('--crypto_list_for_analysis', nargs='+', default=['BTC', 'ETH', 'LTC', 'XRP', 'DOGE'],
                         help='Lista de criptomoedas para análise estatística comparativa')
     parser.add_argument('--crypto', type=str, required=True, help='Caminho para CSV da criptomoeda')
@@ -78,13 +77,16 @@ def main():
     try:
         main_data = load_data(args.crypto, args.crypto_file, args.dwn_not_data_set)
         
-        featured_data = create_features(main_data.copy())
+        # featured_data = create_features(main_data.copy())
+        if isinstance(main_data, tuple):            
+            featured_data = main_data[0]  # Usar as features já processadas
+        else:
+            featured_data = create_features(main_data.copy())
 
         # --- PASSO 2: Treinar o Modelo Selecionado ---
-        pipeline = create_pipeline(args.model, featured_data, args.poly_degree)
-        logger.info(f"Pipeline criado com sucesso. {pipeline}")
+        pipeline = create_pipeline(args.model, args.poly_degree)
+        logger.info("Pipeline criado com sucesso.")
     
-        logger.info(f"Treinando o modelo com: \n [ {featured_data.head()} ] \n model {args.model} com {args.kfolds} folds...")
         predictions_df, avg_rmse, avg_corr = train_and_evaluate_model(
             featured_data, pipeline, n_splits=args.kfolds
         )
@@ -99,51 +101,62 @@ def main():
         hypothesis_test_results = perform_hypothesis_test(backtest_results['strategy_return'])
 
         # --- PASSO 5: Coletar dados para Análise Comparativa (ANOVA) ---
-        all_returns_list = []
-        for crypto in args.crypto_list_for_analysis:
-            temp_data = download_crypto_data(crypto)
-            if temp_data is not None:
-                temp_data['return'] = temp_data['close'].pct_change()
-                temp_data['crypto_symbol'] = crypto
-                all_returns_list.append(temp_data[['return', 'crypto_symbol']].dropna())
-        
-        all_returns_df = pd.concat(all_returns_list)
-        
-        # --- PASSO 6: Executar ANOVA ---
-        anova_results = perform_anova_analysis(all_returns_df)    
+        if args.show_anova:
+            all_returns_list = []
+            for crypto in args.crypto_list_for_analysis:
+                temp_data = download_crypto_data(crypto)
+                if temp_data is not None:
+                    temp_data['return'] = temp_data['close'].pct_change()
+                    temp_data['crypto_symbol'] = crypto
+                    all_returns_list.append(temp_data[['return', 'crypto_symbol']].dropna())
+            
+            all_returns_df = pd.concat(all_returns_list)
+            
+            # --- PASSO 6: Executar ANOVA ---
+            anova_results = perform_anova_analysis(all_returns_df)    
 
-        # --- PASSO 7: Exibir Resultados ---
-        logger.info("\n" + "="*50 + "\nRESULTADOS FINAIS\n" + "="*50)
-
+        # # --- PASSO 7: Exibir Resultados ---
+        
         # Tabela de Desempenho
         summary_data = {
             'Métrica': ['Modelo', 'RMSE Médio', 'Correlação Média', 'Saldo Final (Estratégia)', 'Saldo Final (Buy & Hold)'],
             'Valor': [
-                f"{args.model.upper()}{f' (G={args.poly_degree})' if args.model == 'poly' else ''}",
-                f"${avg_rmse:,.2f}",
-                f"{avg_corr:.3f}",
-                f"${final_strategy_balance:,.2f}",
-                f"${final_buy_hold_balance:,.2f}"
+            f"{args.model.upper()}{f' (G={args.poly_degree})' if args.model == 'poly' else ''}",
+            f"${avg_rmse:,.2f}",
+            f"{avg_corr:.3f}",
+            f"${final_strategy_balance:,.2f}",
+            f"${final_buy_hold_balance:,.2f}"
             ]
         }
+
         summary_df = pd.DataFrame(summary_data)
         print("\n--- Tabela de Desempenho do Modelo ---\n")
-        print(summary_df.to_string(index=False))
+        print_table(summary_df)
 
         # Resultados do Teste de Hipótese
-        print("\n--- Resultados do Teste de Hipótese (Teste-t) ---\n")
-        print(f"Estatística t: {hypothesis_test_results['t_statistic']:.4f}")
-        print(f"P-valor: {hypothesis_test_results['p_value']:.4f}")
-        print(f"Conclusão: {hypothesis_test_results['conclusion']}")
+        print("\n--- Resultados do Teste de Hipótese (Teste-t) ---\n")        
+        hypo_data = {
+            'Métrica': ['Estatística t', 'P-valor'],
+            'Valor': [
+            f"{hypothesis_test_results['t_statistic']:.4f}",
+            f"{hypothesis_test_results['p_value']:.4f}",
+            ]
+        }
+        hypo_df = pd.DataFrame(hypo_data)
+      
+        print_table(hypo_df)
+        print(f"Conclusão: {hypothesis_test_results['conclusion']}\n")
+
 
         # Resultados da ANOVA
-        print("\n--- Resultados da Análise de Variância (ANOVA) ---\n")
-        print(f"P-valor do teste ANOVA: {anova_results['anova_p_value']:.4f}")
-        if anova_results['tukey_df'] is not None:
-            print("\nResultado do Teste Post-Hoc de Tukey:")
-            print(anova_results['tukey_df'].to_string(index=False))
-        else:
-            print("\nTeste de Tukey não foi realizado (ANOVA não significativa).")
+        if args.show_anova:
+            print("\n--- Resultados da Análise de Variância (ANOVA) ---\n")
+            print(f"P-valor do teste ANOVA: {anova_results['anova_p_value']:.4f}")
+            if anova_results['tukey_df'] is not None:
+                print("\nResultado do Teste Post-Hoc de Tukey:")
+                print(anova_results['tukey_df'].to_string(index=False))
+            else:
+                print("\nTeste de Tukey não foi realizado (ANOVA não significativa).")
 
         logger.info("Criango gráficos...")
         generate_graph(args, backtest_results, predictions_df)     

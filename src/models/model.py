@@ -1,26 +1,29 @@
 import logging
-from models.model_mlp import MLP
-from models.model_poly import Poly
-from models.model_linear import Linear
 from sklearn.pipeline import Pipeline
-
-from utils.logger import setup_logger
 from sklearn.neural_network import MLPRegressor
-
-from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 
 logger = logging.getLogger(__name__)
-# logger = setup_logger("CryptoMLP")
 
-def create_pipeline(model_type: str, featured_data, poly_degree: int) -> Pipeline:
-     logger.info(f"Modelo selecionado {model_type}")
-     if model_type not in ['mlp', 'linear', 'poly']:
+def create_pipeline(model_type: str, poly_degree: int) -> Pipeline:
+    logger.info(f"Modelo selecionado {model_type}")
+
+    if model_type not in ['mlp', 'linear', 'poly']:
         raise ValueError(f"Modelo desconhecido: {model_type}. Use 'mlp', 'linear' ou 'poly'.")
      
-     match model_type:
-        case 'mlp':            
-            # mlp = MLP(input_size=featured_data.shape[1] - 2)  # -2 para remover 'target' e 'symbol'
-            model =  MLPRegressor(
+    if model_type == 'linear':
+        return Pipeline([('scaler', StandardScaler()), ('linear', LinearRegression())])
+    
+    elif model_type == 'poly':
+        return Pipeline([
+            ('scaler', StandardScaler()),
+            ('poly_features', PolynomialFeatures(degree=poly_degree, include_bias=False)),
+            ('linear', LinearRegression())
+        ])  
+    
+    else:
+        model =  MLPRegressor(
                 hidden_layer_sizes=(100, 50),
                 max_iter=2000,              # Aumentar para 2000
                 random_state=42,
@@ -31,13 +34,6 @@ def create_pipeline(model_type: str, featured_data, poly_degree: int) -> Pipelin
                 learning_rate_init=0.01,    # Taxa de aprendizado maior
                 solver='adam',
                 tol=1e-4                    # Tolerância para convergência
-            )  # -2 para remover 'target' e 'symbol'
+            )  
 
-            return Pipeline([('scaler', StandardScaler()), ('mlp', model)])
-            # return mlp.create_pipeline()
-        case 'linear':
-            linear = Linear()
-            return linear.create_pipeline()
-        case 'poly':
-            poly = Poly(input_size=featured_data.shape[1] - 2, degree=poly_degree)
-            return poly.create_pipeline()
+        return Pipeline([('scaler', StandardScaler()), ('mlp', model)])

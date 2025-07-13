@@ -35,7 +35,7 @@ def generate_graph(args, backtest_results, predictions_df):
     plt.tight_layout()
     # plt.show()
     # plt.savefig('../figures/crypto_analysis_results.png', dpi=150, bbox_inches='tight')
-    file_name = f'./figures/crypto_analysis_results_{datetime.datetime.now().strftime("%y-%m-%d.%f") }.png'
+    file_name = f'./figures/crypto_analysis_{args.model}_results_{datetime.datetime.now().strftime("%y-%m-%d.%f")}.png'
     plt.savefig(file_name, dpi=150, bbox_inches='tight')
     logger.info(f"Gráficos salvos em {file_name}")
     plt.close()
