@@ -66,21 +66,49 @@ data-crypto-ai/
     └── test_trainer.py
 ```
 
+## 📁 Estrutura de Pastas
+
+O projeto organiza os resultados e os dados em três pastas principais, com o objetivo de manter os arquivos bem separados e acessíveis conforme o tipo de informação:
+
+### 📊 `figures/`
+Esta pasta contém todos os **gráficos gerados** durante as análises estatísticas e modelagens.  
+- Os gráficos representam visualmente os desempenhos dos modelos aplicados, retornos das criptomoedas, comparações estatísticas, entre outros.
+- Os arquivos são salvos em formatos como `.png` ou `.html` (no caso de gráficos interativos).
+- Cada gráfico é nomeado com base na moeda e no tipo de análise realizada.
+- Cada gráfico possui uma resolução base de 150 dpi
+
+### 📈 `data/`
+Esta pasta armazena os **datasets brutos e processados**, utilizados durante as análises e modelagens.
+- Os arquivos estão em formato `.csv`, com preços históricos de criptomoedas obtidos do [cryptodatadownload.com](https://www.cryptodatadownload.com).
+- Inclui dados de múltiplas criptomoedas, podendo conter informações como data, preço de fechamento, volume, entre outros.
+
+### 📋 `tables/`
+Nesta pasta ficam os **resultados numéricos das análises**, salvos em arquivos `.csv`.
+- Cada arquivo representa uma **análise estatística específica** (ex: teste t, ANOVA, métricas de validação dos modelos).
+- Os arquivos são segregados por tipo de análise e, quando aplicável, por criptomoeda.
+- Facilitam a inspeção, comparação e reuso dos resultados para relatórios ou apresentações.
+
+---
+
 ## ⚙️ Parâmetros CLI
 
 python main.py [--param valor] ...
 
-| Parâmetro | Tipo | Padrão | Descrição |
-|----------|------|--------|-----------|
-| --dwn-not-data-set | bool | False | Se True, baixa o dataset mais recente |
-| --investment | float | 1000.0 | Valor inicial do investimento em USD |
-| --poly_degree | int | 2 | Grau do polinômio (se model=poly) |
-| --show_anova | bool | False | Executa análise ANOVA entre criptomoedas |
-| --crypto_list_for_analysis | list | ['BTC', 'ETH', 'LTC', 'XRP', 'DOGE'] | Criptomoedas para análise estatística |
-| --crypto | str | obrigatório | Nome da criptomoeda (ex: BTC) |
-| --model | str | mlp | Tipo de modelo (mlp, poly, linear) |
-| --kfolds | int | 5 | Número de Folds na validação cruzada |
-| --window_size | int | 7 | Janela temporal de features |
+| Parâmetro                   | Tipo   | Padrão                                      | Descrição                                                                 |
+|----------------------------|--------|---------------------------------------------|---------------------------------------------------------------------------|
+| --dwn-not-data-set         | bool   | False                                       | Se True, baixa o dataset mais recente do [cryptodatadownload.com](https://www.cryptodatadownload.com) |
+| --investment               | float  | 1000.0                                      | Valor inicial do investimento em USD                                     |
+| --poly_degree              | int    | 2                                           | Grau do polinômio (se model=poly)                                        |
+| --show_anova               | bool   | False                                       | Se True, executa análise ANOVA entre criptomoedas                        |
+| --crypto_list_for_analysis| list   | ['BTC', 'ETH', 'LTC', 'XRP', 'DOGE']        | Criptomoedas para análise estatística comparativa                        |
+| --crypto                   | str    | BTC (obrigatório)                           | Sigla da criptomoeda para análise (ex: BTC)                              |
+| --model                    | str    | none                                        | Tipo de modelo: MLPRegressor, poly, linear, etc.                         |
+| --kfolds                   | int    | 5                                           | Número de Folds para validação cruzada                                   |
+| --window_size              | int    | 7                                           | Tamanho da janela temporal                                               |
+| --statistical              | bool   | False                                       | Se True, analisa 10 moedas no diretório `data` gerando gráficos e CSVs   |
+| --interative_graph         | bool   | False                                       | Se True, exibe gráfico interativo (não será salvo)                        |
+| --analyse-cryptos          | bool   | False                                       | Se True, executa análise de 10 criptomoedas predefinidas                 |
+
 
 ## ▶️ Como Executar
 
