@@ -21,6 +21,8 @@ Este projeto desenvolve um sistema completo de previsão de preços de criptomoe
 - Testes automatizados com `pytest` + cobertura com `pytest-cov`
 - Gráficos salvos em alta resolução (`figures/`, mínimo 150dpi)
 
+▶ [Watch the demo video](https://drive.google.com/file/d/1kfSpxBY0hiFoX1fYu1T4679SClURlhHx/view?usp=drive_link)
+
 ## 📁 Estrutura de Diretórios
 
 ```.
