@@ -48,6 +48,11 @@ def generate_graph(args, backtest_results, predictions_df):
 
 def generate_multgraph(args, data):
     try:
+        # TODO: Incluir um linha com os dados reais de evolução da moeda
+        #       - Ajustar a cores, para melhorar a visualização
+        #       - Ajustar a posição dos graficos para 2 linhas e 3 colunas
+        #          - Colocar o grafico de linha ocupando toda a linha 0
+        #          - colocar o grafico de dispersão na segunda linha em 3 colulas     
 
         backtest_results_mlp = data['mlp']['backtest']
         backtest_results_linear = data['linear']['backtest']
