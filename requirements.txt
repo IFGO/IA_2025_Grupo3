@@ -5,7 +5,10 @@ matplotlib
 torch
 pytest
 pytest-cov
-window_size
 requests
 scipy
 statsmodels
+tabulate
+seaborn
+urllib
+window_size

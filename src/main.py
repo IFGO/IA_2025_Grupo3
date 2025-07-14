@@ -7,7 +7,7 @@ from utils.features import create_features
 from utils.logger import setup_logger
 from views.graph import generate_graph
 from typing import Optional
-from utils.data_loader import download_crypto_data, read_crypto_data
+from utils.data_loader import load_data, download_crypto_data, read_crypto_data
 from views.table import print_table
 
 logger = setup_logger("CryptoMLP")
@@ -49,9 +49,7 @@ def args_parser() -> None:
                         help='Se True, executa análise ANOVA para comparação entre criptomoedas')
     parser.add_argument('--crypto_list_for_analysis', nargs='+', default=['BTC', 'ETH', 'LTC', 'XRP', 'DOGE'],
                         help='Lista de criptomoedas para análise estatística comparativa')
-    parser.add_argument('--crypto', type=str, required=True, help='Caminho para CSV da criptomoeda')
-    parser.add_argument('--crypto_file', type=str, default='./data/Poloniex_BTCUSDC_d.csv',
-                        help='Caminho para o arquivo CSV da criptomoeda (padrão: ./data/Poloniex_BTCUSDC_d.csv)')
+    parser.add_argument('--crypto', type=str, required=True, default='BTC', help='Deve ser informada a sigal da criptomoeda ex: BTC')
     parser.add_argument('--model', type=str, default="mlp", help='Tipo de modelo: MLPRegressor')
     parser.add_argument('--kfolds', type=int, default=5, help='Número de K-Folds para validação')
     parser.add_argument('--window_size', type=int, default=7, help='Tamanho da janela temporal')
@@ -62,22 +60,12 @@ def args_parser() -> None:
     logger.info("{args} argumentos carregados com sucesso")
     return args
 
-def load_data(crypto_symbol: str, crypto_file: str, dwn_not_data_set: bool) -> Optional[pd.DataFrame]:
-    if dwn_not_data_set:
-        logger.info("Baixando o dataset mais recente...")
-        df = download_crypto_data(crypto_symbol, crypto_file)
-        return df
-    else:
-        logger.info(f"Lendo dados do arquivo: {crypto_file}")
-        df = read_crypto_data(crypto_symbol, crypto_file)
-        return df
-
 def main():
     """Função principal do pipeline de treinamento."""
     args = args_parser()
 
     try:
-        main_data = load_data(args.crypto, args.crypto_file, args.dwn_not_data_set)
+        main_data = load_data(args.crypto, args.dwn_not_data_set)
         
         # featured_data = create_features(main_data.copy())
         if isinstance(main_data, tuple):            
@@ -132,11 +120,11 @@ def main():
         }
 
         summary_df = pd.DataFrame(summary_data)
-        print("\n--- Tabela de Desempenho do Modelo ---\n")
+        print(f"\n--- Tabela de Desempenho do Modelo - {args.crypto} ---\n")
         print_table(summary_df)
 
         # Resultados do Teste de Hipótese
-        print("\n--- Resultados do Teste de Hipótese (Teste-t) ---\n")        
+        print(f"\n--- Resultados do Teste de Hipótese (Teste-t) - {args.crypto} ---\n")        
         hypo_data = {
             'Métrica': ['Estatística t', 'P-valor'],
             'Valor': [

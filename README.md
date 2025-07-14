@@ -54,7 +54,6 @@ python main.py [--param valor] ...
 | --show_anova | bool | False | Executa análise ANOVA entre criptomoedas |
 | --crypto_list_for_analysis | list | ['BTC', 'ETH', 'LTC', 'XRP', 'DOGE'] | Criptomoedas para análise estatística |
 | --crypto | str | obrigatório | Nome da criptomoeda (ex: BTC) |
-| --crypto_file | str | data/Poloniex_BTC_d.csv | Caminho para o CSV da criptomoeda |
 | --model | str | mlp | Tipo de modelo (mlp, poly, linear) |
 | --kfolds | int | 5 | Número de Folds na validação cruzada |
 | --window_size | int | 7 | Janela temporal de features |

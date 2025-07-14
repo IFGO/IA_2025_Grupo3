@@ -6,6 +6,16 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+def load_data(crypto_symbol: str, dwn_not_data_set: bool) -> Optional[pd.DataFrame]:
+    if dwn_not_data_set:
+        logger.info("Baixando o dataset mais recente...")
+        df = download_crypto_data(crypto_symbol)
+        return df
+    else:       
+        crypto_file = f"./data/Poloniex_{crypto_symbol}USDC_d.csv"
+        logger.info(f"Lendo dados do arquivo: {crypto_file}")
+        df = read_crypto_data(crypto_symbol)
+        return df
 
 def prepare_data(crypto_symbol: str, df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -77,10 +87,10 @@ def download_crypto_data(crypto_symbol: str) -> Optional[pd.DataFrame]:
         logger.info(f"Dados para {crypto_symbol} processados com sucesso.")
         
         # remove unnecessary columns
-#         X = df.drop(columns=['date', 'symbol', 'close', 'close_scaled']).values
-#         y = df['close_scaled'].values
+        # X = df.drop(columns=['date', 'symbol', 'close', 'close_scaled']).values
+        # y = df['close_scaled'].values
 
-#         return np.array(X), np.array(y), scaler        
+        # return np.array(X), np.array(y), scaler        
         return df
 
     except requests.exceptions.HTTPError as http_err:
@@ -90,7 +100,7 @@ def download_crypto_data(crypto_symbol: str) -> Optional[pd.DataFrame]:
         logger.error(f"Erro inesperado ao processar {crypto_symbol}: {e}")
         return None
 
-def read_crypto_data(crypto_symbol: str, file_path: str) -> Optional[pd.DataFrame]:
+def read_crypto_data(crypto_symbol: str) -> Optional[pd.DataFrame]:
     """
     Lê dados de criptomoedas de um arquivo CSV.
 
@@ -102,6 +112,9 @@ def read_crypto_data(crypto_symbol: str, file_path: str) -> Optional[pd.DataFram
     """
     try: 
         os.makedirs("./data", exist_ok=True)
+
+        filename = f"Poloniex_{crypto_symbol}USDC_d.csv"
+        file_path = f"./data/{filename}"
         
         if not os.path.exists(file_path):
            raise FileNotFoundError(f"Arquivo não encontrado: {file_path}")
