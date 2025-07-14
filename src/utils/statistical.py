@@ -168,32 +168,24 @@ def plot_historical_closing_prices(dfs, coins):
             df = dfs[coin].copy()
             df['date'] = pd.to_datetime(df['date'])
             df = df.sort_values(by='date')
+
+            df['mean'] = df['close'].rolling(window=7).mean()
+            df['median'] = df['close'].rolling(window=7).median()
+            df['mode'] = df['close'].rolling(window=7).apply(lambda x: x.mode().iloc[0] if not x.mode().empty else np.nan)
+
             ax = axes[i]
-            ax.plot(df['date'], df['close'], label='Close')
-            
-            # Calculate metrics
-            mean_close = df['close'].mean()
-            median_close = df['close'].median()
-            mode_close = df['close'].mode()
-            
-            # Plot metrics
-            if not mode_close.empty:
-                mode_close_value = mode_close[0]
-                ax.axhline(mode_close_value, color='r', linestyle='--', label=f'Mode ({mode_close_value:.2f})')
-            else:
-                ax.axhline(0, color='r', linestyle='--', label='Mode (N/A)')
+            ax.plot(df['date'], df['close'], label='Fechamento', alpha=0.6)
+            ax.plot(df['date'], df['mean'], label='Média (7d)', linestyle='--')
+            ax.plot(df['date'], df['median'], label='Mediana (7d)', linestyle='--')
+            ax.plot(df['date'], df['mode'], label='Moda (7d)', linestyle='--')
 
-            ax.axhline(mean_close, color='g', linestyle='--', label=f'Mean ({mean_close:.2f})')
-            ax.axhline(median_close, color='orange', linestyle='--', label=f'Median ({median_close:.2f})')
-
-            ax.set_title(f'Historical Closing Price of {coin}')
-            ax.set_xlabel('Date')
-            ax.set_ylabel('Closing Price (USD)')
-            ax.tick_params(axis='x', rotation=45)
+            ax.set_title(f'Preço de Fechamento de {coin} (com Média, Mediana e Moda)')
+            ax.set_xlabel('Data')
+            ax.set_ylabel('Preço')
             ax.legend()
             ax.grid(True)
+            ax.tick_params(axis='x', rotation=45)
         else:
-            print(f"No valid data found for cryptocurrency {coin}.")
             fig.delaxes(axes[i])
 
     for j in range(n_coins, len(axes)):
