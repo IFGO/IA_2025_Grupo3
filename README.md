@@ -6,6 +6,8 @@
 
 Este projeto desenvolve um sistema completo de previsão de preços de criptomoedas utilizando redes neurais e modelos de regressão. O objetivo é analisar dados históricos, construir modelos preditivos, realizar comparações estatísticas e avaliar a rentabilidade de estratégias de investimento automatizadas.
 
+![Hint example](hint.gif)
+
 ## 🚀 Funcionalidades
 
 - Download e carregamento de datasets históricos do [CryptoDataDownload](https://www.cryptodatadownload.com/data/poloniex/)
@@ -20,8 +22,6 @@ Este projeto desenvolve um sistema completo de previsão de preços de criptomoe
 - CLI configurável com `argparse`
 - Testes automatizados com `pytest` + cobertura com `pytest-cov`
 - Gráficos salvos em alta resolução (`figures/`, mínimo 150dpi)
-
-![Hint example](hint.gif)
 
 ## 📁 Estrutura de Diretórios
 
