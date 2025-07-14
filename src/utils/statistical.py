@@ -331,7 +331,7 @@ def analyze_daily_volatility(dfs, coins):
         else:
             print(f"\nIncomplete or non-existent data for {coin} for volatility analysis.")
 
-def main():
+def run_statistical():
     """
     Main function to execute the cryptocurrency analysis workflow.
     """
@@ -374,6 +374,3 @@ def main():
     analyze_daily_volatility(dfs, coins)
     
     print("\nAnalysis complete.")
-
-if __name__ == "__main__":
-    main()
