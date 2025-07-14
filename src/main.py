@@ -55,6 +55,7 @@ def args_parser() -> None:
     parser.add_argument('--model', type=str, default="mlp", help='Tipo de modelo: MLPRegressor')
     parser.add_argument('--kfolds', type=int, default=5, help='Número de K-Folds para validação')
     parser.add_argument('--window_size', type=int, default=7, help='Tamanho da janela temporal')
+    parser.add_argument('--interative_graph', type=bool, default=False, help='Caso deseje usar o grafico de forma interativa, porém não irá salvar o gráfico.')
     parser.add_argument('--analyse-cryptos', type=bool, default=False, help='Caso esse parametro seja verdadeiro, irá executar uma análise de 10 criptomoeadas predefinidas.')
 
     args = parser.parse_args()
@@ -91,8 +92,6 @@ def main():
         predictions_df, avg_rmse, avg_corr = train_and_evaluate_model(
             featured_data, pipeline, n_splits=args.kfolds
         )
-
-        logger.info(predictions_df, avg_rmse, avg_corr)
 
         # --- PASSO 3: Executar Backtest ---
         backtest_results = run_backtest(predictions_df, initial_capital=args.investment)
