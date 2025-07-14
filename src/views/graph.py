@@ -49,25 +49,44 @@ def generate_graph(args, backtest_results, predictions_df):
 def generate_multgraph(args, backtest_results, predictions_df):
     try:    
         sns.set(style="whitegrid")
-        fig, axes = plt.subplots(2, 1, figsize=(14, 12), dpi=150)
+        fig, axes = plt.subplots(2, 2, figsize=(14, 12), dpi=150)
         
         poly_subtitles = ''
         if args.model == 'poly':
             poly_subtitles = f"- Polinomial de {args.poly_degree}º"
 
-        axes[0].plot(backtest_results.index, backtest_results['strategy_balance'], label=f'Estratégia ({args.model.upper()})', color='royalblue')
-        axes[0].plot(backtest_results.index, backtest_results['buy_hold_balance'], label='Comprar e Manter (Buy & Hold)', color='darkorange', linestyle='--')
-        axes[0].set_title(f'Evolução do Investimento de ${args.investment:,.2f} - {args.crypto} - Para modelo {args.model} {poly_subtitles}', fontsize=16)
-        axes[0].set_ylabel('Saldo (USD)')
-        axes[0].legend()
-        axes[0].tick_params(axis='x', rotation=45)
+        axes[0,0].plot(backtest_results.index, backtest_results['buy_hold_balance'], label='Comprar e Manter (Buy & Hold)', color='darkorange', linestyle='--')
+        axes[0,0].plot(backtest_results.index, backtest_results['strategy_balance'], label=f'Estratégia ({args.model.upper()})', color='royalblue')
+        axes[0,0].plot(backtest_results.index, backtest_results['strategy_balance'], label=f'Estratégia ({args.model.upper()})', color='magenta')
+        axes[0,0].plot(backtest_results.index, backtest_results['strategy_balance'], label=f'Estratégia ({args.model.upper()})', color='lime')
+        axes[0,0].set_title(f'Evolução do Investimento de ${args.investment:,.2f} - {args.crypto} - Para modelo {args.model} {poly_subtitles}', fontsize=16)
+        axes[0,0].set_ylabel('Saldo (USD)')
+        axes[0,0].legend()
+        axes[0,0].tick_params(axis='x', rotation=45)
         
-        sns.regplot(x='actual', y='predicted', data=predictions_df, ax=axes[1],
+        sns.regplot(x='actual', y='predicted', data=predictions_df, ax=axes[0,1],
                     scatter_kws={'alpha':0.3, 'color': 'royalblue'},
                     line_kws={'color':'red', 'linestyle':'--'})
-        axes[1].set_title(f'Diagrama de Dispersão: Previsto vs. Real ({args.crypto}) {poly_subtitles}', fontsize=16)
-        axes[1].set_xlabel('Preço Real (USD)')
-        axes[1].set_ylabel('Preço Previsto (USD)')
+
+        axes[0,1].set_title(f'Diagrama de Dispersão: Previsto vs. Real ({args.crypto}) {poly_subtitles} - Model: MLP', fontsize=16)
+        axes[0,1].set_xlabel('Preço Real (USD)')
+        axes[0,1].set_ylabel('Preço Previsto (USD)')
+        
+        sns.regplot(x='actual', y='predicted', data=predictions_df, ax=axes[1,0],
+                    scatter_kws={'alpha':0.3, 'color': 'magenta'},
+                    line_kws={'color':'red', 'linestyle':'--'})
+
+        axes[1,0].set_title(f'Diagrama de Dispersão: Previsto vs. Real ({args.crypto}) {poly_subtitles} - Model: Linear', fontsize=16)
+        axes[1,0].set_xlabel('Preço Real (USD)')
+        axes[1,0].set_ylabel('Preço Previsto (USD)')
+        
+        sns.regplot(x='actual', y='predicted', data=predictions_df, ax=axes[1,1],
+                    scatter_kws={'alpha':0.3, 'color': 'lime'},
+                    line_kws={'color':'red', 'linestyle':'--'})
+
+        axes[1,1].set_title(f'Diagrama de Dispersão: Previsto vs. Real ({args.crypto}) {poly_subtitles} - Model: Poly', fontsize=16)
+        axes[1,1].set_xlabel('Preço Real (USD)')
+        axes[1,1].set_ylabel('Preço Previsto (USD)')
         
         plt.tight_layout()
         if args.interative_graph:        

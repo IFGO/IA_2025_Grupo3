@@ -5,7 +5,7 @@ from utils.perform import perform_hypothesis_test, perform_anova_analysis
 from trainer.trainer import train_and_evaluate_model, run_backtest
 from utils.features import create_features
 from utils.logger import setup_logger
-from views.graph import generate_graph
+from views.graph import generate_graph, generate_multgraph
 from typing import Optional
 from utils.data_loader import load_data, download_crypto_data, read_crypto_data
 from views.table import print_table
@@ -149,7 +149,7 @@ def main():
                 print("\nTeste de Tukey não foi realizado (ANOVA não significativa).")
 
         logger.info("Criango gráficos...")
-        generate_graph(args, backtest_results, predictions_df)     
+        generate_multgraph(args, backtest_results, predictions_df)     
 
     except FileNotFoundError:
         logger.error(f"Arquivo não encontrado: {args.crypto}")

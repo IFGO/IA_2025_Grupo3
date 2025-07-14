@@ -22,7 +22,6 @@ env/
 htmlcov/
 
 # Data files
-data/*.csv
 data/*.json
 
 # Model artifacts
