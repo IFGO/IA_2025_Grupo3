@@ -70,9 +70,7 @@ def generate_multgraph(args, data):
         if args.model == 'poly':
             poly_subtitles = f"- Polinomial de {args.poly_degree}º"
 
-        axes[0,0].plot(backtest_results_mlp.index, backtest_results_mlp['buy_hold_balance'], label='Comprar e Manter (Buy & Hold) - MLP', color='darkorange', linestyle='--')
-        axes[0,0].plot(backtest_results_linear.index, backtest_results_linear['buy_hold_balance'], label='Comprar e Manter (Buy & Hold) - Linear', color='darkgreen', linestyle='--')
-        axes[0,0].plot(backtest_results_poly.index, backtest_results_poly['buy_hold_balance'], label='Comprar e Manter (Buy & Hold) - Poly', color='darkblue', linestyle='--')
+        axes[0,0].plot(backtest_results_mlp.index, backtest_results_mlp['buy_hold_balance'], label='Comprar e Manter (Buy & Hold)', color='darkorange', linestyle='--')
         axes[0,0].plot(backtest_results_mlp.index, backtest_results_mlp['strategy_balance'], label=f'Estratégia (MLP)', color='royalblue')
         axes[0,0].plot(backtest_results_linear.index, backtest_results_linear['strategy_balance'], label=f'Estratégia (Linear)', color='magenta')
         axes[0,0].plot(backtest_results_poly.index, backtest_results_poly['strategy_balance'], label=f'Estratégia (Poly {poly_subtitles})', color='lime')
