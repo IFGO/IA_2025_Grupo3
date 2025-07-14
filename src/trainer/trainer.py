@@ -7,9 +7,10 @@ from typing import Tuple
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from utils.logger import setup_logger
 
+logger = setup_logger(__name__)
 
-logger = logging.getLogger(__name__)
 
 def format_value(    
     symbol: str,
@@ -80,7 +81,7 @@ def train_and_evaluate_model(
         mae_scores.append(mae)
         r2_scores.append(r2)
 
-        logger.info(f"  - Fold {fold+1}/{n_splits} | {format_value('RMSE', rmse, 11)} | {format_value('MSE', mse, 13 )}" 
+        logger.info(f"  - Fold {fold+1}/{n_splits} | {format_value('RMSE', rmse, 12)} | {format_value('MSE', mse, 14 )}" 
                     + f" | {format_value('MAE', mae, 10 )} | {format_value('R²', r2, 6)} | Correlação: {corr:.2f}")
         
 

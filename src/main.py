@@ -77,6 +77,7 @@ def main():
             featured_data = create_features(main_data.copy())
 
         
+        logger.info("Criando gráficos...")
         if args.model not in ['mlp', 'linear', 'poly']:
             data = {}
             for model in ['mlp', 'linear', 'poly']:
@@ -88,9 +89,7 @@ def main():
             generate_multgraph(args, data)    
 
         else:     
-            predictions_df, backtest_results = execute(args, featured_data)
-            
-            logger.info("Criango gráficos...")
+            predictions_df, backtest_results = execute(args, featured_data)            
             generate_graph(args, backtest_results,  predictions_df)
 
 

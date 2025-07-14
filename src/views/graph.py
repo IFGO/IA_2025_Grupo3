@@ -1,15 +1,9 @@
-import time
 import datetime
-import logging
 import seaborn as sns
 import matplotlib.pyplot as plt
+from utils.logger import setup_logger
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 def generate_graph(args, backtest_results, predictions_df):
     try:    
@@ -48,11 +42,6 @@ def generate_graph(args, backtest_results, predictions_df):
 
 def generate_multgraph(args, data):
     try:
-        # TODO: Incluir um linha com os dados reais de evolução da moeda
-        #       - Ajustar a posição dos graficos para 2 linhas e 3 colunas
-        #          - Colocar o grafico de linha ocupando toda a linha 0
-        #          - colocar o grafico de dispersão na segunda linha em 3 colulas     
-
         backtest_results_mlp = data['mlp']['backtest']
         backtest_results_linear = data['linear']['backtest']
         backtest_results_poly = data['poly']['backtest']
@@ -61,55 +50,74 @@ def generate_multgraph(args, data):
         predictions_df_linear = data['linear']['predict']
         predictions_df_poly = data['poly']['predict']
         
-
         sns.set(style="whitegrid")
-        fig, axes = plt.subplots(2, 3, figsize=(14, 12), dpi=150)
+        
+        # Criar figura
+        fig = plt.figure(figsize=(18, 12), dpi=150)
         
         poly_subtitles = ''
-        if args.model == 'poly':
+        if hasattr(args, 'poly_degree'):
             poly_subtitles = f"- Polinomial de {args.poly_degree}º"
 
-        axes[0,0].plot(backtest_results_mlp.index, backtest_results_mlp['buy_hold_balance'], label='Comprar e Manter (Buy & Hold)', color='darkorange', linestyle='--')
-        axes[0,0].plot(backtest_results_mlp.index, backtest_results_mlp['strategy_balance'], label=f'Estratégia (MLP)', color='royalblue')
-        axes[0,0].plot(backtest_results_linear.index, backtest_results_linear['strategy_balance'], label=f'Estratégia (Linear) ', color='magenta')
-        axes[0,0].plot(backtest_results_poly.index, backtest_results_poly['strategy_balance'], label=f'Estratégia (Poly {args.poly_degree}º)', color='lime')
-        axes[0,0].set_title(f'Evolução do Investimento de ${args.investment:,.2f} - {args.crypto}', fontsize=16)
-        axes[0,0].set_ylabel('Saldo (USD)')
-        axes[0,0].legend()
-        axes[0,0].tick_params(axis='x', rotation=45)
+        # ============= GRÁFICO PRINCIPAL: Linha 0, ocupando 3 colunas =============
+        ax_main = plt.subplot2grid((2, 3), (0, 0), colspan=3, fig=fig)
         
-        sns.regplot(x='actual', y='predicted', data=predictions_df_mlp, ax=axes[0,1],
-                    scatter_kws={'alpha':0.3, 'color': 'royalblue'},
-                    line_kws={'color':'red', 'linestyle':'--'})
-
-        axes[0,1].set_title(f'Dispersão: Previsto vs. Real ({args.crypto}) {poly_subtitles} - Model: MLP', fontsize=16)
-        axes[0,1].set_xlabel('Preço Real (USD)')
-        axes[0,1].set_ylabel('Preço Previsto (USD)')
+        # Plotar evolução dos investimentos
+        ax_main.plot(backtest_results_mlp.index, backtest_results_mlp['buy_hold_balance'], 
+                    label='Comprar e Manter (Buy & Hold)', color='darkorange', linestyle='--', linewidth=2)
+        ax_main.plot(backtest_results_mlp.index, backtest_results_mlp['strategy_balance'], 
+                    label='Estratégia (MLP)', color='royalblue', linewidth=2)
+        ax_main.plot(backtest_results_linear.index, backtest_results_linear['strategy_balance'], 
+                    label='Estratégia (Linear)', color='magenta', linewidth=2)
+        ax_main.plot(backtest_results_poly.index, backtest_results_poly['strategy_balance'], 
+                    label=f'Estratégia (Poly {getattr(args, "poly_degree", "N")}º)', color='lime', linewidth=2)
         
-        sns.regplot(x='actual', y='predicted', data=predictions_df_linear, ax=axes[1,0],
-                    scatter_kws={'alpha':0.3, 'color': 'magenta'},
-                    line_kws={'color':'red', 'linestyle':'--'})
-
-        axes[1,0].set_title(f'Dispersão: Previsto vs. Real ({args.crypto}) {poly_subtitles} - Model: Linear', fontsize=16)
-        axes[1,0].set_xlabel('Preço Real (USD)')
-        axes[1,0].set_ylabel('Preço Previsto (USD)')
+        ax_main.set_title(f'Evolução do Investimento de ${args.investment:,.2f} - {args.crypto}', fontsize=18)
+        ax_main.set_ylabel('Saldo (USD)', fontsize=14)
+        ax_main.legend(fontsize=12)
+        ax_main.tick_params(axis='x', rotation=45)
+        ax_main.grid(True, alpha=0.3)
         
-        sns.regplot(x='actual', y='predicted', data=predictions_df_poly, ax=axes[1,1],
-                    scatter_kws={'alpha':0.3, 'color': 'lime'},
-                    line_kws={'color':'red', 'linestyle':'--'})
-
-        axes[1,1].set_title(f'Dispersão: Previsto vs. Real ({args.crypto}) {poly_subtitles} - Model: Poly', fontsize=16)
-        axes[1,1].set_xlabel('Preço Real (USD)')
-        axes[1,1].set_ylabel('Preço Previsto (USD)')
+        # ============= GRÁFICOS DE DISPERSÃO: Linha 1, 3 colunas separadas =============
         
-        plt.tight_layout()
-        if args.interative_graph:        
+        # MLP - Posição (1,0)
+        ax1 = plt.subplot2grid((2, 3), (1, 0), fig=fig)
+        sns.regplot(x='actual', y='predicted', data=predictions_df_mlp, ax=ax1,
+                    scatter_kws={'alpha': 0.6, 'color': 'royalblue'},
+                    line_kws={'color': 'red', 'linestyle': '--'})
+        ax1.set_title(f'MLP - Previsto vs Real ({args.crypto})', fontsize=14)
+        ax1.set_xlabel('Preço Real (USD)')
+        ax1.set_ylabel('Preço Previsto (USD)')
+        
+        # Linear - Posição (1,1)
+        ax2 = plt.subplot2grid((2, 3), (1, 1), fig=fig)
+        sns.regplot(x='actual', y='predicted', data=predictions_df_linear, ax=ax2,
+                    scatter_kws={'alpha': 0.6, 'color': 'magenta'},
+                    line_kws={'color': 'red', 'linestyle': '--'})
+        ax2.set_title(f'Linear - Previsto vs Real ({args.crypto})', fontsize=14)
+        ax2.set_xlabel('Preço Real (USD)')
+        ax2.set_ylabel('Preço Previsto (USD)')
+        
+        # Polinomial - Posição (1,2)
+        ax3 = plt.subplot2grid((2, 3), (1, 2), fig=fig)
+        sns.regplot(x='actual', y='predicted', data=predictions_df_poly, ax=ax3,
+                    scatter_kws={'alpha': 0.6, 'color': 'lime'},
+                    line_kws={'color': 'red', 'linestyle': '--'})
+        ax3.set_title(f'Poly - Previsto vs Real ({args.crypto}) {poly_subtitles}', fontsize=14)
+        ax3.set_xlabel('Preço Real (USD)')
+        ax3.set_ylabel('Preço Previsto (USD)')
+        
+        plt.tight_layout(pad=3.0)
+        
+        # Salvar ou exibir
+        if getattr(args, 'interative_graph', False):        
             logger.info("Exibindo gráfico no modo interativo")
             plt.show()
         else:            
-            file_name = f'./figures/crypto_analysis_{args.model}_results_{datetime.datetime.now().strftime("%y-%m-%d.%f")}.png'
+            file_name = f'./figures/crypto_analysis_comparison_{args.crypto}_{datetime.datetime.now().strftime("%y-%m-%d_%H.%M.%S")}.png'
             plt.savefig(file_name, dpi=150, bbox_inches='tight')
-            logger.info(f"Gráficos salvos em {file_name}")
+            logger.info(f"Gráfico comparativo salvo em {file_name}")
             plt.close()
+            
     except Exception as e:
         logger.exception(f"Não foi possível criar o gráfico erro: {str(e)}")
