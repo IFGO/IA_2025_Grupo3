@@ -14,6 +14,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from scipy import stats
+from utils.logger import setup_logger
+
+logger = setup_logger("CryptoMLP")
+
 def setup_environment():
     """Creates the 'figures' directory if it doesn't exist."""
     if not os.path.exists('figures'):
@@ -334,6 +339,7 @@ def test_total_return_hypothesis_by_windows(dfs, target_percent, window=30, alph
     print(f"\nTeste de hipótese unilateral para média dos retornos por janelas > {target_percent:.2f}%")
     print(f"Nível de significância: {alpha*100:.1f}%, janela: {window} dias\n")
 
+    results = []
     for coin, df in dfs.items():
         try:
             df = df.sort_values("date", ascending=True).reset_index(drop=True)
@@ -359,20 +365,41 @@ def test_total_return_hypothesis_by_windows(dfs, target_percent, window=30, alph
             t_stat = (mean_ret - target_percent) / se
             p_value = 1 - stats.t.cdf(t_stat, df=n - 1)
 
-            # Impressão dos resultados
+            is_significant = "Rejeita H₀" if p_value <= alpha else "Não rejeita H₀"
+
             print(f"{coin}:")
             print(f"  n = {n}")
             print(f"  Média dos retornos: {mean_ret:.2f}%")
             print(f"  Desvio padrão: {std_ret:.2f}%")
             print(f"  t = {t_stat:.4f}, p-valor = {p_value:.4f}")
+            print(f"  {is_significant}: Retorno médio {'>' if p_value <= alpha else 'não >'} {target_percent:.2f}%\n")
 
-            if p_value <= alpha:
-                print(f"  ✅ Rejeita H₀: Retorno médio > {target_percent:.2f}% (significativo)\n")
-            else:
-                print(f"  ❌ Não rejeita H₀: Retorno médio não é estatisticamente maior que {target_percent:.2f}%\n")
+            results.append({
+                "coin": coin,
+                "n": n,
+                "mean_return": mean_ret,
+                "std_return": std_ret,
+                "t_stat": t_stat,
+                "p_value": p_value,
+                "significant": is_significant
+            })
 
         except Exception as e:
             print(f"Erro ao processar {coin}: {e}\n")
+            results.append({
+                "coin": coin,
+                "n": None,
+                "mean_return": None,
+                "std_return": None,
+                "t_stat": None,
+                "p_value": None,
+                "significant": f"Erro: {e}"
+            })
+
+    result_df = pd.DataFrame(results)
+    title = 'test_total_return_hypothesis_by_windows'
+    logger.info(f'Criando arquivo CSV com os resultados da análise de retorno esperado - {title}.csv')
+    dataframe_to_csv(title, result_df)
 
 def run_statistical():
     """
@@ -380,6 +407,7 @@ def run_statistical():
     """
     # Create the 'figures' directory to save plots
     setup_environment()
+    logger.info('Executando análise estatistica para 10 criptomoeadas')
 
     # Define the list of cryptocurrencies and their local data file paths
     # IMPORTANT: Create a 'data' folder and place your CSV files there.
