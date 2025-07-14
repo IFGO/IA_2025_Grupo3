@@ -210,6 +210,6 @@ Este projeto foi desenvolvido como trabalho final do Módulo I da pós-graduaç�
 
 > Raony Nascimento - <a href="mailto:nascimento.raony@gmail.com">nascimento.raony@gmail.com</a>
 
-> Rafael Fideles - <a href="mailto:rafaelfideles@live.com@gmail.com">rafaelfideles@live.com@gmail.com</a>
+> Rafael Fideles - <a href="mailto:rafaelfideles@live.com">rafaelfideles@live.com</a>
 
 > Marcelo Carvalho - <a href="mailto:mcarvalho.eng@gmail.com@gmail.com">mcarvalho.eng@gmail.com@gmail.com</a>
