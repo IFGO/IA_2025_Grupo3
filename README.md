@@ -23,6 +23,7 @@ Este projeto desenvolve um sistema completo de previsão de preços de criptomoe
 
 ## 📁 Estrutura de Diretórios
 
+```.
 data-crypto-ai/
 │
 ├── data/                       # Arquivos CSV de criptomoedas
@@ -39,6 +40,7 @@ data-crypto-ai/
 │
 ├── requirements.txt            # Dependências do projeto
 └── README.md                   # Este arquivo
+```
 
 ## ⚙️ Parâmetros CLI
 
