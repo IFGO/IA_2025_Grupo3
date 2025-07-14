@@ -204,4 +204,10 @@ Este projeto foi desenvolvido como trabalho final do Módulo I da pós-graduaç�
 
 ## 📧 Créditos
 
-<p>Desenvolvido por: Fabio Paula, Raony Nogueira, Rafael Fideles, Marcelo Carvalho<p>
+> Fabio Paula -  <a href="mailto:fabioaugustomarquespaula@gmail.com">fabioaugustomarquespaula@gmail.com</a>
+
+> Raony Nascimento - <a href="mailto:nascimento.raony@gmail.com">nascimento.raony@gmail.com</a>
+
+> Rafael Fideles - <a href="mailto:rafaelfideles@live.com@gmail.com">rafaelfideles@live.com@gmail.com</a>
+
+> Marcelo Carvalho - <a href="mailto:mcarvalho.eng@gmail.com@gmail.com">mcarvalho.eng@gmail.com@gmail.com</a>
