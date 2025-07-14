@@ -6,10 +6,29 @@ from scipy import stats
 from typing import Tuple
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import TimeSeriesSplit
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 
 logger = logging.getLogger(__name__)
+
+def format_value(    
+    symbol: str,
+    value: float,
+    size: int = 6    
+) -> str:
+    """
+    Formata o valor para exibição com o símbolo e tamanho especificados.
+
+    Args:
+        symbol (str): Símbolo da metrica.
+        value (float): Valor a ser formatado.
+        size (int): Tamanho total do campo, incluindo o símbolo.
+
+    Returns:
+        str: Valor formatado com o símbolo.
+    """
+    return f"{symbol}: {value:>{size - len(symbol)}.2f}"
+    
 
 def train_and_evaluate_model(
     df: pd.DataFrame,
@@ -36,7 +55,7 @@ def train_and_evaluate_model(
     predictions_df['actual'] = y
     predictions_df['predicted'] = np.nan
 
-    rmses, corrs = [], []
+    rmses, corrs, mse_scores, mae_scores, r2_scores  = [], [], [], [], []        
 
     logger.info(f"Iniciando validação cruzada com {n_splits} folds...")
     for fold, (train_index, test_index) in enumerate(tscv.split(X)):
@@ -49,14 +68,41 @@ def train_and_evaluate_model(
         predictions_df.loc[y_test.index, 'predicted'] = preds
         
         rmse = np.sqrt(mean_squared_error(y_test, preds))
+
+        mse = mean_squared_error(y_test, preds)
+        mae = mean_absolute_error(y_test, preds)
+        r2 = r2_score(y_test, preds)
+
         corr, _ = stats.pearsonr(y_test, preds)
         rmses.append(rmse)
         corrs.append(corr)
-        logger.info(f"  - Fold {fold+1}/{n_splits} | RMSE: {rmse:.2f} | Correlação: {corr:.2f}")
+        mse_scores.append(mse)
+        mae_scores.append(mae)
+        r2_scores.append(r2)
+
+        logger.info(f"  - Fold {fold+1}/{n_splits} | {format_value('RMSE', rmse, 11)} | {format_value('MSE', mse, 13 )}" 
+                    + f" | {format_value('MAE', mae, 10 )} | {format_value('R²', r2, 6)} | Correlação: {corr:.2f}")
+        
 
     avg_rmse = np.mean(rmses)
     avg_corr = np.mean(corrs)
-    logger.info(f"Validação cruzada concluída. RMSE Médio: {avg_rmse:.2f}, Correlação Média: {avg_corr:.2f}")
+    avg_mse = np.mean(mse_scores)
+    avg_mae = np.mean(mae_scores)
+    avg_r2 = np.mean(r2_scores)
+    
+    # Desvio padrão para MSE, MAE e R²
+    std_rmse = np.nanstd(rmses)
+    std_corr = np.nanstd(corrs)
+    std_mse = np.nanstd(mse_scores)
+    std_mae = np.nanstd(mae_scores)
+    std_r2 = np.nanstd(r2_scores)
+    
+    logger.info(f"Validação cruzada concluída.  , ")
+    logger.info(f"  - RMSE: {avg_rmse:.6f} ± {std_rmse:.6f}")
+    logger.info(f"  - MSE: {avg_mse:.6f} ± {std_mse:.6f}")
+    logger.info(f"  - MAE: {avg_mae:.6f} ± {std_mae:.6f}")
+    logger.info(f"  - R²: {avg_r2:.6f}±{std_r2:.6f}")
+    logger.info(f"  - Correlação: {avg_corr:.6f} ± {std_corr:.6f}")
     
     return predictions_df.dropna(), avg_rmse, avg_corr
 

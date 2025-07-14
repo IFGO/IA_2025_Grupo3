@@ -50,8 +50,8 @@ def args_parser() -> None:
     parser.add_argument('--crypto_list_for_analysis', nargs='+', default=['BTC', 'ETH', 'LTC', 'XRP', 'DOGE'],
                         help='Lista de criptomoedas para análise estatística comparativa')
     parser.add_argument('--crypto', type=str, required=True, help='Caminho para CSV da criptomoeda')
-    parser.add_argument('--crypto_file', type=str, default='data/Poloniex_BTC_d.csv',
-                        help='Caminho para o arquivo CSV da criptomoeda (padrão: data/Poloniex_BTC_d.csv)')
+    parser.add_argument('--crypto_file', type=str, default='./data/Poloniex_BTCUSDC_d.csv',
+                        help='Caminho para o arquivo CSV da criptomoeda (padrão: ./data/Poloniex_BTCUSDC_d.csv)')
     parser.add_argument('--model', type=str, default="mlp", help='Tipo de modelo: MLPRegressor')
     parser.add_argument('--kfolds', type=int, default=5, help='Número de K-Folds para validação')
     parser.add_argument('--window_size', type=int, default=7, help='Tamanho da janela temporal')
