@@ -56,10 +56,10 @@ def generate_multgraph(args, backtest_results, predictions_df):
             poly_subtitles = f"- Polinomial de {args.poly_degree}º"
 
         axes[0,0].plot(backtest_results.index, backtest_results['buy_hold_balance'], label='Comprar e Manter (Buy & Hold)', color='darkorange', linestyle='--')
-        axes[0,0].plot(backtest_results.index, backtest_results['strategy_balance'], label=f'Estratégia ({args.model.upper()})', color='royalblue')
-        axes[0,0].plot(backtest_results.index, backtest_results['strategy_balance'], label=f'Estratégia ({args.model.upper()})', color='magenta')
-        axes[0,0].plot(backtest_results.index, backtest_results['strategy_balance'], label=f'Estratégia ({args.model.upper()})', color='lime')
-        axes[0,0].set_title(f'Evolução do Investimento de ${args.investment:,.2f} - {args.crypto} - Para modelo {args.model} {poly_subtitles}', fontsize=16)
+        axes[0,0].plot(backtest_results.index, backtest_results['strategy_balance'], label=f'Estratégia (MLP)', color='royalblue')
+        axes[0,0].plot(backtest_results.index, backtest_results['strategy_balance'], label=f'Estratégia (Linear)', color='magenta')
+        axes[0,0].plot(backtest_results.index, backtest_results['strategy_balance'], label=f'Estratégia (Poly {poly_subtitles})', color='lime')
+        axes[0,0].set_title(f'Evolução do Investimento de ${args.investment:,.2f} - {args.crypto}', fontsize=16)
         axes[0,0].set_ylabel('Saldo (USD)')
         axes[0,0].legend()
         axes[0,0].tick_params(axis='x', rotation=45)

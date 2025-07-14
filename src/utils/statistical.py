@@ -121,7 +121,7 @@ def plot_closing_price_boxplots(dfs, coins):
     save_path = 'figures/closing_price_boxplots.png'
     plt.savefig(save_path)
     print(f"Saved boxplots to {save_path}")
-    plt.show()
+    
 
 def plot_closing_price_histograms(dfs, coins):
     """
@@ -156,7 +156,7 @@ def plot_closing_price_histograms(dfs, coins):
     save_path = 'figures/closing_price_histograms.png'
     plt.savefig(save_path)
     print(f"Saved histograms to {save_path}")
-    plt.show()
+    
 
 def plot_historical_closing_prices(dfs, coins):
     """
@@ -214,7 +214,7 @@ def plot_historical_closing_prices(dfs, coins):
     save_path = 'figures/historical_closing_prices.png'
     plt.savefig(save_path)
     print(f"Saved historical plots to {save_path}")
-    plt.show()
+    
 
 def display_summary_statistics(dfs, coins):
     """
@@ -245,7 +245,7 @@ def display_summary_statistics(dfs, coins):
         
         # Note: The 'display' function is used here for its rich output in notebooks.
         # In a standard Python script, you would use 'print(df_summary)'.
-        display(style_dataframe(df_summary))
+        print(style_dataframe(df_summary))
 
 def display_dispersion_measures(dfs, coins):
     """
@@ -334,8 +334,7 @@ def analyze_daily_volatility(dfs, coins):
             save_path = f'figures/daily_volatility_{coin}.png'
             plt.savefig(save_path)
             print(f"Saved daily volatility plot to {save_path}")
-            plt.show()
-
+            
         else:
             print(f"\nIncomplete or non-existent data for {coin} for volatility analysis.")
 
