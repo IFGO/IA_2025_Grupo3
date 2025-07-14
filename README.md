@@ -29,6 +29,7 @@ data-crypto-ai/
 ├── data/                       # Arquivos CSV de criptomoedas
 ├── figures/                    # Gráficos salvos em 150 dpi
 ├── models/                     # Modelos treinados e serializados
+├── tables/                     # Tabelas de dados comparativos de moedas
 ├── tests/                      # Testes automatizados (pytest)
 │
 ├── main.py                     # Script principal com interface CLI

@@ -58,27 +58,16 @@ def highlight_rows(row):
     """Helper function to apply alternating row colors to a DataFrame style."""
     return ['background-color: #6495ED;' if row.name % 2 == 0 else '' for _ in row]
 
-def style_dataframe(df):
+def dataframe_to_csv(file_name: str, df: pd.DataFrame):
     """
-    Applies custom styling to a DataFrame for better visualization in notebooks.
+    Exports the given dataframe to csv file
     
     Args:
-        df (pd.DataFrame): The DataFrame to style.
-
-    Returns:
-        Styler: A styled DataFrame object.
+        df (pd.DataFrame): The DataFrame to export.
     """
-    styled_df = df.style.apply(highlight_rows, axis=1)
-    # This CSS adds a hover effect and other table styles.
-    styled_df = styled_df.set_table_attributes(
-        'class="hover-table"'
-    ).set_table_styles([
-        {'selector': 'tbody tr:hover', 'props': [('background-color', 'yellow')]},
-        {'selector': '.hover-table', 'props': [('border-collapse', 'collapse')]},
-        {'selector': 'th, td', 'props': [('border', '1px solid #ddd'), ('padding', '8px')]},
-        {'selector': 'tr:nth-child(even)', 'props': [('background-color', '#6495ED'), ('color', '#1C1C1C')]}
-    ])
-    return styled_df
+    print(file_name)
+    df.to_csv(f"./tables/{file_name}.csv", encoding='utf-8')
+    return df
 
 def plot_closing_price_boxplots(dfs, coins):
     """
@@ -226,7 +215,9 @@ def display_summary_statistics(dfs, coins):
     """
     print("\n--- Summary Statistics ---")
     for coin in coins:
-        print(f"\nSummary statistics for - {coin}:")
+        title = f"Summary statistics for - {coin}"
+        print(f"\n{title}:")
+
         coin_data = dfs[coin].drop(columns=['unix', 'date', 'symbol'], errors='ignore')
         summary = {'Metric': [], 'Mean': [], 'Median': [], 'Mode': [], 'Q1 (25%)': [], 'Q2 (50%)': [], 'Q3 (75%)': []}
 
@@ -245,7 +236,8 @@ def display_summary_statistics(dfs, coins):
         
         # Note: The 'display' function is used here for its rich output in notebooks.
         # In a standard Python script, you would use 'print(df_summary)'.
-        print(style_dataframe(df_summary))
+        print(df_summary)
+        dataframe_to_csv(title, df_summary)
 
 def display_dispersion_measures(dfs, coins):
     """
@@ -258,7 +250,8 @@ def display_dispersion_measures(dfs, coins):
     print("\n--- Dispersion Measures ---")
     vari_summary = {'Coin': [], 'Coef.Variation': []}
     for coin in coins:
-        print(f"\nDispersion measures for - {coin}:")
+        title = f"Dispersion measures for - {coin}"
+        print(f"{title}:")
         coin_data = dfs[coin].drop(columns=['unix', 'date', 'symbol'], errors='ignore')
         dispersion = {'Metric': [], 'Variance': [], 'Std. Deviation': [], 'Range': [], 'Interquartile Range': [], 'Coef. of Variation': []}
 
@@ -277,13 +270,13 @@ def display_dispersion_measures(dfs, coins):
                 vari_summary['Coef.Variation'].append(coef_var)
 
         df_dispersion = pd.DataFrame(dispersion)
-        pd.set_option('display.float_format', '{:.8f}'.format)
-        display(style_dataframe(df_dispersion))
+        pd.set_option('display.float_format', '{:.8f}'.format)    
+        print(dataframe_to_csv(title, df_dispersion))    
     
     df_coef_var = pd.DataFrame(vari_summary)
     print("\n--- Comparison of Coefficient of Variation (Closing Price) ---")
     pd.set_option('display.float_format', '{:.8f}'.format)
-    display(style_dataframe(df_coef_var.sort_values(by='Coef.Variation', ascending=False)))
+    print(dataframe_to_csv('Coef.Variation', df_coef_var.sort_values(by='Coef.Variation', ascending=False)))
     print("\n" + "-"*80)
 
 def analyze_daily_volatility(dfs, coins):
