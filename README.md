@@ -1,6 +1,6 @@
 # 📈 Crypto Price Predictor
 
-> Trabalho Final - Especialização em Inteligência Artificial Aplicada  
+> Trabalho Final Módulo I (IFG) - Especialização em Inteligência Artificial Aplicada  
 > Professores: Dr. Eduardo Noronha, Me. Otávio Calaça, Dr. Eder Brito  
 > Alunos: Fabio Paula, Raony Nogueira, Rafael Fideles, Marcelo 
 
