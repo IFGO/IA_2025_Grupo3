@@ -25,22 +25,45 @@ Este projeto desenvolve um sistema completo de previsão de preços de criptomoe
 
 ```.
 data-crypto-ai/
-│
-├── data/                       # Arquivos CSV de criptomoedas
-├── figures/                    # Gráficos salvos em 150 dpi
-├── models/                     # Modelos treinados e serializados
-├── tables/                     # Tabelas de dados comparativos de moedas
-├── tests/                      # Testes automatizados (pytest)
-│
-├── main.py                     # Script principal com interface CLI
-├── data_load.py                # Módulo de carregamento e download de dados
-├── features.py                 # Extração e engenharia de features
-├── models.py                   # Treinamento e avaliação de modelos
-├── analysis.py                 # Análises estatísticas e visuais
-├── utils.py                    # Funções auxiliares e métricas
-│
-├── requirements.txt            # Dependências do projeto
-└── README.md                   # Este arquivo
+├── data                              # Arquivos CSV de criptomoedas
+│   └── Poloniex_BTCUSD_d.csv
+├── figures                           # Gráficos salvos em 150 dpi
+│   ├── closing_price_boxplots.png
+│   ├── closing_price_histograms.png
+│   ├── crypto_analysis_comparison_BTC_25-07-14_04.31.31.png
+│   ├── daily_volatility_BTC.png
+│   └── historical_closing_prices.png
+├── pytest.ini
+├── README.md                         # Este arquivo com descrição do projeto
+├── .gitignore                        # Arquivos e pastas ignorados pelo Git
+├── requirements.txt                  # Dependências do projeto
+├── setup.py
+├── src
+│   ├── main.py                       # Script principal com interface CLI
+│   ├── models                        # Modelos treinados e serializados
+│   │   └── model.py
+│   ├── trainer                       # Treinamento e avaliação de modelos
+│   │   └── trainer.py
+│   ├── utils                         # Funções utilitárias e métricas
+│   │   ├── data_loader.py            # Módulo de carregamento e download de dados
+│   │   ├── features.py               # Extração e engenharia de features
+│   │   ├── logger.py
+│   │   ├── perform.py
+│   │   └── statistical.py
+│   └── views
+│       ├── graph.py
+│       └── table.py
+├── tables                            # Tabelas de resultados e estatísticas
+│   ├── Coef.Variation.csv
+│   ├── Dispersion measures for - BTC.csv
+│   └── Summary statistics for - BTC.csv
+└── tests                             # Testes automatizados
+    ├── test_data_loader.py
+    ├── test_features.py
+    ├── test_main.py
+    ├── test_model.py
+    ├── test_table.py
+    └── test_trainer.py
 ```
 
 ## ⚙️ Parâmetros CLI
@@ -72,7 +95,7 @@ Caso deseje executar o projeto localmente, siga os passos fornecidos.
 ### 1. Clonar o repositório
 
 ```bash
-git clone https://github.com/Fabioaugustmp/data-crypto-ai -b feat/brainstorm
+git clone https://github.com/Fabioaugustmp/data-crypto-ai
 cd data-crypto-ai
 ```
 
@@ -98,9 +121,16 @@ pip install -r requirements.txt
 ```
 
 ### 4. Executar um exemplo de previsão
+ - 4.1 Modelo MLP
 
 ```bash
-python main.py --crypto BTC --crypto_file data/Poloniex_BTC_d.csv --model mlp --investment 1000 --kfolds 5
+python main.py --crypto BTC --model mlp --investment 1000 --kfolds 5
+```
+
+  - 4.2 Todos os Modelos
+
+```bash
+python main.py --crypto BTC --investment 1000 --kfolds 5
 ```
 
 ### 5. Rodar com análise estatística e ANOVA
