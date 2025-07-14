@@ -49,7 +49,6 @@ def generate_graph(args, backtest_results, predictions_df):
 def generate_multgraph(args, data):
     try:
         # TODO: Incluir um linha com os dados reais de evolução da moeda
-        #       - Ajustar a cores, para melhorar a visualização
         #       - Ajustar a posição dos graficos para 2 linhas e 3 colunas
         #          - Colocar o grafico de linha ocupando toda a linha 0
         #          - colocar o grafico de dispersão na segunda linha em 3 colulas     
@@ -64,7 +63,7 @@ def generate_multgraph(args, data):
         
 
         sns.set(style="whitegrid")
-        fig, axes = plt.subplots(2, 2, figsize=(14, 12), dpi=150)
+        fig, axes = plt.subplots(2, 3, figsize=(14, 12), dpi=150)
         
         poly_subtitles = ''
         if args.model == 'poly':
@@ -72,8 +71,8 @@ def generate_multgraph(args, data):
 
         axes[0,0].plot(backtest_results_mlp.index, backtest_results_mlp['buy_hold_balance'], label='Comprar e Manter (Buy & Hold)', color='darkorange', linestyle='--')
         axes[0,0].plot(backtest_results_mlp.index, backtest_results_mlp['strategy_balance'], label=f'Estratégia (MLP)', color='royalblue')
-        axes[0,0].plot(backtest_results_linear.index, backtest_results_linear['strategy_balance'], label=f'Estratégia (Linear)', color='magenta')
-        axes[0,0].plot(backtest_results_poly.index, backtest_results_poly['strategy_balance'], label=f'Estratégia (Poly {poly_subtitles})', color='lime')
+        axes[0,0].plot(backtest_results_linear.index, backtest_results_linear['strategy_balance'], label=f'Estratégia (Linear) ', color='magenta')
+        axes[0,0].plot(backtest_results_poly.index, backtest_results_poly['strategy_balance'], label=f'Estratégia (Poly {args.poly_degree}º)', color='lime')
         axes[0,0].set_title(f'Evolução do Investimento de ${args.investment:,.2f} - {args.crypto}', fontsize=16)
         axes[0,0].set_ylabel('Saldo (USD)')
         axes[0,0].legend()
@@ -83,7 +82,7 @@ def generate_multgraph(args, data):
                     scatter_kws={'alpha':0.3, 'color': 'royalblue'},
                     line_kws={'color':'red', 'linestyle':'--'})
 
-        axes[0,1].set_title(f'Diagrama de Dispersão: Previsto vs. Real ({args.crypto}) {poly_subtitles} - Model: MLP', fontsize=16)
+        axes[0,1].set_title(f'Dispersão: Previsto vs. Real ({args.crypto}) {poly_subtitles} - Model: MLP', fontsize=16)
         axes[0,1].set_xlabel('Preço Real (USD)')
         axes[0,1].set_ylabel('Preço Previsto (USD)')
         
@@ -91,7 +90,7 @@ def generate_multgraph(args, data):
                     scatter_kws={'alpha':0.3, 'color': 'magenta'},
                     line_kws={'color':'red', 'linestyle':'--'})
 
-        axes[1,0].set_title(f'Diagrama de Dispersão: Previsto vs. Real ({args.crypto}) {poly_subtitles} - Model: Linear', fontsize=16)
+        axes[1,0].set_title(f'Dispersão: Previsto vs. Real ({args.crypto}) {poly_subtitles} - Model: Linear', fontsize=16)
         axes[1,0].set_xlabel('Preço Real (USD)')
         axes[1,0].set_ylabel('Preço Previsto (USD)')
         
@@ -99,7 +98,7 @@ def generate_multgraph(args, data):
                     scatter_kws={'alpha':0.3, 'color': 'lime'},
                     line_kws={'color':'red', 'linestyle':'--'})
 
-        axes[1,1].set_title(f'Diagrama de Dispersão: Previsto vs. Real ({args.crypto}) {poly_subtitles} - Model: Poly', fontsize=16)
+        axes[1,1].set_title(f'Dispersão: Previsto vs. Real ({args.crypto}) {poly_subtitles} - Model: Poly', fontsize=16)
         axes[1,1].set_xlabel('Preço Real (USD)')
         axes[1,1].set_ylabel('Preço Previsto (USD)')
         

@@ -9,13 +9,10 @@ are saved to a 'figures' directory.
 """
 
 import os
-import urllib.error
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-# The 'display' function is part of IPython and works in environments like Jupyter Notebooks.
-from IPython.display import display
 
 def setup_environment():
     """Creates the 'figures' directory if it doesn't exist."""

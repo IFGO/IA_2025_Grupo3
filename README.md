@@ -2,7 +2,7 @@
 
 > Trabalho Final Módulo I (IFG) - Especialização em Inteligência Artificial Aplicada  
 > Professores: Dr. Eduardo Noronha, Me. Otávio Calaça, Dr. Eder Brito  
-> Alunos: Fabio Paula, Raony Nogueira, Rafael Fideles, Marcelo 
+> Alunos: Fabio Paula, Raony Nogueira, Rafael Fideles, Marcelo Carvalho
 
 Este projeto desenvolve um sistema completo de previsão de preços de criptomoedas utilizando redes neurais e modelos de regressão. O objetivo é analisar dados históricos, construir modelos preditivos, realizar comparações estatísticas e avaliar a rentabilidade de estratégias de investimento automatizadas.
 
@@ -146,4 +146,4 @@ Este projeto foi desenvolvido como trabalho final do Módulo I da pós-graduaç�
 
 ## 📧 Créditos
 
-<p>Desenvolvido por: Fabio Paula, Raony Nogueira, Rafael Fideles, Marcelo<p>
+<p>Desenvolvido por: Fabio Paula, Raony Nogueira, Rafael Fideles, Marcelo Carvalho<p>
