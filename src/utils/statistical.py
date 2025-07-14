@@ -320,6 +320,60 @@ def analyze_daily_volatility(dfs, coins):
         else:
             print(f"\nIncomplete or non-existent data for {coin} for volatility analysis.")
 
+def test_total_return_hypothesis_by_windows(dfs, target_percent, window=30, alpha=0.05):
+    """
+    Realiza teste t unilateral para verificar se a média dos retornos totais por janelas fixas
+    é estatisticamente maior que um valor-alvo (target_percent), com nível de significância definido.
+
+    Parâmetros:
+    - dfs: dicionário de DataFrames (1 por criptomoeda)
+    - target_percent: valor de referência para o retorno (%)
+    - window: tamanho da janela (em dias) para cálculo dos retornos
+    - alpha: nível de significância (ex: 0.05 para 5%)
+    """
+    print(f"\nTeste de hipótese unilateral para média dos retornos por janelas > {target_percent:.2f}%")
+    print(f"Nível de significância: {alpha*100:.1f}%, janela: {window} dias\n")
+
+    for coin, df in dfs.items():
+        try:
+            df = df.sort_values("date", ascending=True).reset_index(drop=True)
+            close_prices = df['close']
+
+            # Cálculo dos retornos em janelas fixas
+            returns = []
+            for i in range(0, len(close_prices) - window, window):
+                p0 = close_prices[i]
+                pf = close_prices[i + window]
+                ret = ((pf - p0) / p0) * 100
+                returns.append(ret)
+
+            if len(returns) < 2:
+                print(f"{coin}: Dados insuficientes (n < 2 janelas).")
+                continue
+
+            returns = np.array(returns)
+            mean_ret = returns.mean()
+            std_ret = returns.std(ddof=1)
+            n = len(returns)
+            se = std_ret / np.sqrt(n)
+            t_stat = (mean_ret - target_percent) / se
+            p_value = 1 - stats.t.cdf(t_stat, df=n - 1)
+
+            # Impressão dos resultados
+            print(f"{coin}:")
+            print(f"  n = {n}")
+            print(f"  Média dos retornos: {mean_ret:.2f}%")
+            print(f"  Desvio padrão: {std_ret:.2f}%")
+            print(f"  t = {t_stat:.4f}, p-valor = {p_value:.4f}")
+
+            if p_value <= alpha:
+                print(f"  ✅ Rejeita H₀: Retorno médio > {target_percent:.2f}% (significativo)\n")
+            else:
+                print(f"  ❌ Não rejeita H₀: Retorno médio não é estatisticamente maior que {target_percent:.2f}%\n")
+
+        except Exception as e:
+            print(f"Erro ao processar {coin}: {e}\n")
+
 def run_statistical():
     """
     Main function to execute the cryptocurrency analysis workflow.
@@ -361,5 +415,6 @@ def run_statistical():
     
     # Analyze and plot daily volatility
     analyze_daily_volatility(dfs, coins)
+    test_total_return_hypothesis_by_windows(dfs, target_percent=3.00, window=30, alpha=0.05)
     
     print("\nAnalysis complete.")

@@ -81,7 +81,7 @@ def train_and_evaluate_model(
         mae_scores.append(mae)
         r2_scores.append(r2)
 
-        logger.info(f"  - Fold {fold+1}/{n_splits} | {format_value('RMSE', rmse, 12)} | {format_value('MSE', mse, 14 )}" 
+        logger.info(f"  - Fold {fold+1}/{n_splits} | {format_value('RMSE', rmse, 12)} | {format_value('MSE', mse, 16)}" 
                     + f" | {format_value('MAE', mae, 10 )} | {format_value('R²', r2, 6)} | Correlação: {corr:.2f}")
         
 
